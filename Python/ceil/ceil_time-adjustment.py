@@ -1,0 +1,106 @@
+
+# second version
+
+# %%
+import os
+import shutil
+import datetime
+from netCDF4 import Dataset, num2date
+
+import glob
+import re
+import logging
+
+# logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+input_dir = '/Users/bhupendra/data/ceil/test/holding'
+output_dir = '//Users/bhupendra/data/ceil/test/test2'
+
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
+
+# %%
+
+def get_modification_time(file_path):
+    try:
+        mod_time_epoch = os.path.getmtime(file_path)
+        return datetime.datetime.fromtimestamp(mod_time_epoch)
+    except Exception as e:
+        logging.error(f"Error getting modification time for {file_path}: {e}")
+        return None
+
+def new_file_name(original_file_path, mod_time):
+    base_name = os.path.basename(original_file_path)
+    new_date_time = mod_time.strftime('%Y%m%d_%H%M%S')
+    new_base_name = re.sub(r'\d{8}_\d{6}', new_date_time, base_name)
+    return os.path.join(output_dir, new_base_name)
+
+
+# %%
+def adjust_time_variable(time_var, mod_time, midnight):
+    """
+    Use file modification time.
+    """
+    try:
+        times = num2date(time_var[:], units=time_var.units)  # Convert num times to pyhton datetime objects
+        start_time = times[0] 
+        # in this version we are getting interval from the file (No assumptions).
+        delta_seconds = [(time - start_time).total_seconds() for time in times]  
+        
+        seconds_since_midnight = (mod_time - midnight).total_seconds()
+        adjusted_times = [seconds_since_midnight + delta - delta_seconds[0] for delta in delta_seconds]  # Adjust times
+        
+        time_var[:] = adjusted_times  # change time variable to adjusted times
+        time_var.units = f'seconds since {midnight.strftime("%Y-%m-%d 00:00:00")}'
+    except Exception as e:
+        logging.error(f"Error adjusting time variable: {e}")
+
+def adjust_time_axis(nc_file, mod_time):
+    """
+    Adjusts time directly in the file.
+    """
+    midnight = datetime.datetime(mod_time.year, mod_time.month, mod_time.day)
+    
+    # Adjust the main time variable
+    if 'time' in nc_file.variables:
+        adjust_time_variable(nc_file.variables['time'], mod_time, midnight)
+    
+    # and noe the groups
+    for group_name in ['monitoring', 'status']:
+        if group_name in nc_file.groups:
+            group = nc_file.groups[group_name]
+            if 'time' in group.variables:
+                adjust_time_variable(group.variables['time'], mod_time, midnight)
+            else:
+                logging.warning(f"Time variable not found in {group_name} group.")
+        else:
+            logging.info(f"Group '{group_name}' not found in the file.")
+
+
+
+# %%
+
+def process_file(original_file_path):
+    mod_time = get_modification_time(original_file_path)
+    if mod_time is None:
+        return
+    
+    new_file_path = new_file_name(original_file_path, mod_time)
+    try:
+        shutil.copy(original_file_path, new_file_path)
+        with Dataset(new_file_path, 'r+') as nc_file:
+            adjust_time_axis(nc_file, mod_time)
+        logging.info(f'Processed and copied file to: {new_file_path}')
+    except Exception as e:
+        logging.error(f"Error processing file {original_file_path}: {e}")
+
+
+# %%
+
+for file_path in glob.glob(os.path.join(input_dir, '*.nc')):
+    process_file(file_path)
+
+
+
