@@ -10,15 +10,8 @@ from netCDF4 import Dataset, num2date
 import glob
 import re
 import logging
+import argparse 
 
-# logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-input_dir = '/Users/bhupendra/data/ceil/test/holding'
-output_dir = '//Users/bhupendra/data/ceil/test/test2'
-
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
 
 
 # %%
@@ -99,8 +92,21 @@ def process_file(original_file_path):
 
 # %%
 
-for file_path in glob.glob(os.path.join(input_dir, '*.nc')):
-    process_file(file_path)
 
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Igest Ceil files.")
+    parser.add_argument("-i", required=False, help="Holding directory.", default='/Users/bhupendra/data/ceil/test/holding')
+    parser.add_argument("-o", required=False, help="Directory for processed data.", default='/Users/bhupendra/data/ceil/test/test2')
+    args = parser.parse_args()
 
+    input_dir = args.i
+    output_dir = args.o
+
+    # Ensure the output directory exists
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+
+    for file_path in glob.glob(os.path.join(input_dir, '*.nc')):
+        process_file(file_path)
