@@ -1,5 +1,7 @@
 
-# 
+# Adjustment of time in Ceil netCDF files by correct timestamps based on file modification times.
+# Run: ` python ceil_time-adjustment.py -i /path/to/input_dir -o /path/to/output_dir -p "*.nc"`
+
 import os
 import shutil
 import datetime
