@@ -1,7 +1,5 @@
 
-# second version
-
-# %%
+# 
 import os
 import shutil
 import datetime
@@ -16,7 +14,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-# %%
+# 
 
 def get_modification_time(file_path):
     try:
@@ -33,7 +31,7 @@ def new_file_name(original_file_path, mod_time):
     return os.path.join(output_dir, new_base_name)
 
 
-# %%
+# 
 def adjust_time_variable(time_var, mod_time, midnight):
     """
     Use file modification time.
@@ -75,7 +73,7 @@ def adjust_time_axis(nc_file, mod_time):
 
 
 
-# %%
+#
 
 def process_file(original_file_path):
     mod_time = get_modification_time(original_file_path)
@@ -87,12 +85,12 @@ def process_file(original_file_path):
         shutil.copy(original_file_path, new_file_path)
         with Dataset(new_file_path, 'r+') as nc_file:
             adjust_time_axis(nc_file, mod_time)
-        logging.info(f'Processed and copied file to: {new_file_path}')
+        logging.info(f'Processed {original_file_path} ---> {new_file_path}')
     except Exception as e:
         logging.error(f"Error processing file {original_file_path}: {e}")
 
 
-# %%
+# 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Igest Ceil files.")
     parser.add_argument("-i", help="Holding directory.")
