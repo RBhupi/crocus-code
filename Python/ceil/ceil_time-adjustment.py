@@ -93,13 +93,10 @@ def process_file(original_file_path):
 
 
 # %%
-
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Igest Ceil files.")
-    parser.add_argument("-i", required=False, help="Holding directory.", default='/Users/bhupendra/data/ceil/test/holding')
-    parser.add_argument("-o", required=False, help="Directory for processed data.", default='/Users/bhupendra/data/ceil/test/test2')
+    parser.add_argument("-i", help="Holding directory.")
+    parser.add_argument("-o", help="For processed data.")
     args = parser.parse_args()
 
     input_dir = args.i
