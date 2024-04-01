@@ -9,9 +9,11 @@ from netCDF4 import Dataset, num2date
 
 import glob
 import re
-import logging
+
 import argparse 
 
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 # %%
