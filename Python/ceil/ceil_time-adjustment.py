@@ -97,6 +97,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Igest Ceil files.")
     parser.add_argument("-i", help="Holding directory.")
     parser.add_argument("-o", help="For processed data.")
+    parser.add_argument("-p", help="bash wildcards.", default="*.nc")
     args = parser.parse_args()
 
     input_dir = args.i
@@ -107,5 +108,5 @@ if __name__ == "__main__":
         os.makedirs(output_dir)
 
 
-    for file_path in glob.glob(os.path.join(input_dir, '*.nc')):
+    for file_path in glob.glob(os.path.join(input_dir, args.p)):
         process_file(file_path)
