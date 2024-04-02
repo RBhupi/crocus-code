@@ -15,9 +15,6 @@ import argparse
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-
-# 
-
 def get_modification_time(file_path):
     try:
         mod_time_epoch = os.path.getmtime(file_path)
@@ -94,7 +91,7 @@ def process_file(original_file_path):
 
 # 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Igest Ceil files.")
+    parser = argparse.ArgumentParser(description="Ingest Ceil files.")
     parser.add_argument("-i", help="Holding directory.")
     parser.add_argument("-o", help="For processed data.")
     parser.add_argument("-p", help="bash wildcards.", default="*.nc")

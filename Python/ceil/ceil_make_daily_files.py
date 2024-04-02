@@ -40,15 +40,15 @@ def process_files(start_date, end_date, input_dir, output_dir):
                 end_of_day = start_of_day + timedelta(days=1)
                 daily_ds = daily_ds.sel(time=slice(start_of_day, end_of_day - pd.to_timedelta('1ms')))
 
-                output_path = os.path.join(output_dir, f'daily_file_{date_str}.nc')
+                output_path = os.path.join(output_dir, f'cmscl61_neiu_{date_str}.nc')
                 daily_ds.to_netcdf(output_path, encoding=encoding)
-                logging.info(f'Saved daily data for {date_str} to {output_path}')
+                logging.info(f'Done for {date_str} --> {output_path}')
 
                 daily_ds.close()
             else:
-                logging.warning(f'No files for {date_str}')
+                logging.warning(f'No files for day {date_str}')
         except Exception as e:
-            logging.error(f'Error processing files for {date_str}: {e}')
+            logging.error(f'Error processing day {date_str}: {e}')
         
         current_date += timedelta(days=1)
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # Convert to datetime objects
+    # Convert to datetime
     start_date = datetime.strptime(args.start_date, '%Y-%m-%d')
     end_date = datetime.strptime(args.end_date, '%Y-%m-%d')
 
