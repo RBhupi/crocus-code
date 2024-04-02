@@ -5,23 +5,29 @@ import pandas as pd
 from datetime import datetime, timedelta
 import argparse
 import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 # this function need to be broken in to smaller functions
 def process_files(start_date, end_date, input_dir, output_dir):
     current_date = start_date
     while current_date <= end_date:
         try:
-            prev_date_str = (current_date - timedelta(days=1)).strftime('%Y%m%d')
-            date_str = current_date.strftime('%Y%m%d')
-            next_date_str = (current_date + timedelta(days=1)).strftime('%Y%m%d')
+            prev_date_str = (current_date - timedelta(days=1)).strftime("%Y%m%d")
+            date_str = current_date.strftime("%Y%m%d")
+            next_date_str = (current_date + timedelta(days=1)).strftime("%Y%m%d")
 
-            time_units = f'seconds since {date_str} 00:00:00'
-            encoding = {'time': {'units': time_units, 'calendar': 'standard', 'dtype': 'float64'}}
+            time_units = f"seconds since {date_str} 00:00:00"
+            encoding = {
+                "time": {
+                    "units": time_units,
+                    "calendar": "standard",
+                    "dtype": "float64",
+                }
+            }
 
-            prev_files_pattern = os.path.join(input_dir, f'*{prev_date_str}*.nc')
-            current_files_pattern = os.path.join(input_dir, f'*{date_str}*.nc')
-            next_files_pattern = os.path.join(input_dir, f'*{next_date_str}*.nc')
+            prev_files_pattern = os.path.join(input_dir, f"*{prev_date_str}*.nc")
+            current_files_pattern = os.path.join(input_dir, f"*{date_str}*.nc")
+            next_files_pattern = os.path.join(input_dir, f"*{next_date_str}*.nc")
 
             prev_day_files = sorted(glob.glob(prev_files_pattern))
             current_day_files = sorted(glob.glob(current_files_pattern))
@@ -34,23 +40,26 @@ def process_files(start_date, end_date, input_dir, output_dir):
                 selected_files.append(next_day_files[0])
 
             if selected_files:
-                daily_ds = xr.open_mfdataset(selected_files, combine='by_coords')
+                daily_ds = xr.open_mfdataset(selected_files, combine="by_coords")
 
-                start_of_day = pd.to_datetime(date_str).floor('D')
+                start_of_day = pd.to_datetime(date_str).floor("D")
                 end_of_day = start_of_day + timedelta(days=1)
-                daily_ds = daily_ds.sel(time=slice(start_of_day, end_of_day - pd.to_timedelta('1ms')))
+                daily_ds = daily_ds.sel(
+                    time=slice(start_of_day, end_of_day - pd.to_timedelta("1ms"))
+                )
 
-                output_path = os.path.join(output_dir, f'cmscl61_neiu_{date_str}.nc')
+                output_path = os.path.join(output_dir, f"cmscl61_neiu_{date_str}.nc")
                 daily_ds.to_netcdf(output_path, encoding=encoding)
-                logging.info(f'Done for {date_str} --> {output_path}')
+                logging.info(f"Done for {date_str} --> {output_path}")
 
                 daily_ds.close()
             else:
-                logging.warning(f'No files for day {date_str}')
+                logging.warning(f"No files for day {date_str}")
         except Exception as e:
-            logging.error(f'Error processing day {date_str}: {e}')
-        
+            logging.error(f"Error processing day {date_str}: {e}")
+
         current_date += timedelta(days=1)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Make daily netCDF files.")
@@ -61,11 +70,23 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # Convert to datetime
-    start_date = datetime.strptime(args.start_date, '%Y-%m-%d')
-    end_date = datetime.strptime(args.end_date, '%Y-%m-%d')
-
     # make out put  dir
     os.makedirs(args.output_dir, exist_ok=True)
 
-    process_files(start_date, end_date, args.input_dir, args.output_dir)
+    # create logfile
+    logfile = os.path.join(
+        args.output, datetime.now().strftime("log_%Y-%m-%d_%H-%M-%S.txt")
+    )
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[logging.FileHandler(logfile), logging.StreamHandler()],
+    )
+
+    logging.info(f"Script arguments: {vars(args)}")  # args in namespce not dict
+
+    # Convert to datetime
+    start_date = datetime.strptime(args.start, "%Y-%m-%d")
+    end_date = datetime.strptime(args.end, "%Y-%m-%d")
+
+    process_files(start_date, end_date, args.input, args.output)
