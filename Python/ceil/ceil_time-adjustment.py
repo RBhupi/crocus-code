@@ -1,5 +1,5 @@
 
-# Adjustment of time in Ceil netCDF files by correct timestamps based on file modification times.
+# Time adjustment in Ceil netCDF files by correct timestamps based on file modification times.
 # Run: ` python ceil_time-adjustment.py -i /path/to/input_dir -o /path/to/output_dir -p "*.nc"`
 
 import os
@@ -11,9 +11,8 @@ import glob
 import re
 
 import argparse 
-
 import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 def get_modification_time(file_path):
     try:
@@ -103,6 +102,19 @@ if __name__ == "__main__":
     # Ensure the output directory exists
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
+
+
+    # create logfile
+    logfile = os.path.join(
+        output_dir, datetime.now().strftime("log_ceil-time-adjustment_%Y-%m-%d_%H-%M-%S.txt")
+    )
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[logging.FileHandler(logfile), logging.StreamHandler()],
+    )
+
+    logging.info(f"Script arguments: {vars(args)}")  # args in namespce not dict
 
 
     for file_path in glob.glob(os.path.join(input_dir, args.p)):

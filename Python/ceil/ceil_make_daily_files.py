@@ -71,11 +71,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # make out put  dir
-    os.makedirs(args.output_dir, exist_ok=True)
+    os.makedirs(args.output, exist_ok=True)
 
     # create logfile
     logfile = os.path.join(
-        args.output, datetime.now().strftime("log_%Y-%m-%d_%H-%M-%S.txt")
+        args.output, datetime.now().strftime("log_ceil-make-daily_%Y-%m-%d_%H-%M-%S.txt")
     )
     logging.basicConfig(
         level=logging.INFO,
