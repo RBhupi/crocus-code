@@ -55,7 +55,7 @@ def process_files(args):
                     time=slice(start_of_day, end_of_day - pd.to_timedelta("1ms"))
                 )
 
-                output_path = os.path.join(output_dir, f"{args.prefix}-{date_str}0000.nc")
+                output_path = os.path.join(output_dir, f"{args.prefix}{date_str}-000000.nc")
                 daily_ds.to_netcdf(output_path, encoding=encoding)
                 logging.info(f"Done for {date_str} --> {output_path}")
 
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     parser.add_argument("--end", help="End day YYYY-MM-DD format.", required=True)
     parser.add_argument("--input", help="Directory.", required=True)
     parser.add_argument("--output", help="Directory.", required=True)
-    parser.add_argument("--prefix", help="Filename prefix for output.", default="crocus-neiu-ceilometer-a1")
+    parser.add_argument("--prefix", help="Output filename prefix, added before datetime string. (Default: crocus-neiu-ceil-a1-)", default="crocus-neiu-ceil-a1-")
 
     args = parser.parse_args()
 
