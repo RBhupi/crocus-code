@@ -8,8 +8,15 @@ import logging
 
 
 # this function need to be broken in to smaller functions
-def process_files(start_date, end_date, input_dir, output_dir):
-    current_date = start_date
+def process_files(args):
+
+    input_dir= args.input
+    output_dir= args.output
+
+    # Convert to datetime
+    current_date = datetime.strptime(args.start, "%Y-%m-%d")
+    end_date = datetime.strptime(args.end, "%Y-%m-%d")
+
     while current_date <= end_date:
         try:
             prev_date_str = (current_date - timedelta(days=1)).strftime("%Y%m%d")
@@ -48,7 +55,7 @@ def process_files(start_date, end_date, input_dir, output_dir):
                     time=slice(start_of_day, end_of_day - pd.to_timedelta("1ms"))
                 )
 
-                output_path = os.path.join(output_dir, f"cmscl61_neiu_{date_str}.nc")
+                output_path = os.path.join(output_dir, f"{args.prefix}-{date_str}0000.nc")
                 daily_ds.to_netcdf(output_path, encoding=encoding)
                 logging.info(f"Done for {date_str} --> {output_path}")
 
@@ -67,6 +74,7 @@ if __name__ == "__main__":
     parser.add_argument("--end", help="End day YYYY-MM-DD format.", required=True)
     parser.add_argument("--input", help="Directory.", required=True)
     parser.add_argument("--output", help="Directory.", required=True)
+    parser.add_argument("--prefix", help="Filename prefix for output.", default="crocus-neiu-ceilometer-a1")
 
     args = parser.parse_args()
 
@@ -85,8 +93,6 @@ if __name__ == "__main__":
 
     logging.info(f"Script arguments: {vars(args)}")  # args in namespce not dict
 
-    # Convert to datetime
-    start_date = datetime.strptime(args.start, "%Y-%m-%d")
-    end_date = datetime.strptime(args.end, "%Y-%m-%d")
+  
 
-    process_files(start_date, end_date, args.input, args.output)
+    process_files(args)
