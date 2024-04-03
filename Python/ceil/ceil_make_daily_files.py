@@ -69,7 +69,7 @@ def process_files(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Make daily netCDF files.")
+    parser = argparse.ArgumentParser(description="Generates daily netCDF files. Time follows DoE ARM format (seconds since the day's start).")
     parser.add_argument("--start", help="First day YYYY-MM-DD format.", required=True)
     parser.add_argument("--end", help="End day YYYY-MM-DD format.", required=True)
     parser.add_argument("--input", help="Directory.", required=True)
