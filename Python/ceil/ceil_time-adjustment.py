@@ -4,7 +4,7 @@
 
 import os
 import shutil
-import datetime
+import datetime 
 from netCDF4 import Dataset, num2date
 
 import glob
@@ -17,7 +17,7 @@ import logging
 def get_modification_time(file_path):
     try:
         mod_time_epoch = os.path.getmtime(file_path)
-        return datetime.datetime.fromtimestamp(mod_time_epoch)
+        return datetime.datetime.utcfromtimestamp(mod_time_epoch)
     except Exception as e:
         logging.error(f"Error getting modification time for {file_path}: {e}")
         return None
@@ -41,9 +41,9 @@ def adjust_time_variable(time_var, mod_time, midnight):
         delta_seconds = [(time - start_time).total_seconds() for time in times]  
         
         seconds_since_midnight = (mod_time - midnight).total_seconds()
-        adjusted_times = [seconds_since_midnight + delta - delta_seconds[0] for delta in delta_seconds]  # Adjust times
+        adjusted_times = [seconds_since_midnight + delta - delta_seconds[0] for delta in delta_seconds] 
         
-        time_var[:] = adjusted_times  # change time variable to adjusted times
+        time_var[:] = adjusted_times  # change nc time to new times
         time_var.units = f'seconds since {midnight.strftime("%Y-%m-%d 00:00:00")}'
     except Exception as e:
         logging.error(f"Error adjusting time variable: {e}")
@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
     # create logfile
     logfile = os.path.join(
-        output_dir, datetime.now().strftime("log_ceil-time-adjustment_%Y-%m-%d_%H-%M-%S.txt")
+        output_dir, datetime.datetime.now().strftime("log_ceil-time-adjustment_%Y-%m-%d_%H-%M-%S.txt")
     )
     logging.basicConfig(
         level=logging.INFO,
