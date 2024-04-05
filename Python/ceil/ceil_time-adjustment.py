@@ -14,10 +14,10 @@ import argparse
 import logging
 
 
-def get_modification_time(file_path):
+def get_modification_time(file_path, latency):
     try:
-        mod_time_epoch = os.path.getmtime(file_path)
-        return datetime.datetime.utcfromtimestamp(mod_time_epoch)
+        mod_time_epoch = os.path.getmtime(file_path) - latency
+        return datetime.datetime.fromtimestamp(mod_time_epoch, datetime.UTC)
     except Exception as e:
         logging.error(f"Error getting modification time for {file_path}: {e}")
         return None
@@ -73,8 +73,8 @@ def adjust_time_axis(nc_file, mod_time):
 
 #
 
-def process_file(original_file_path):
-    mod_time = get_modification_time(original_file_path)
+def process_file(original_file_path, latency):
+    mod_time = get_modification_time(original_file_path, latency)
     if mod_time is None:
         return
     
@@ -94,6 +94,7 @@ if __name__ == "__main__":
     parser.add_argument("-i", help="Holding directory.")
     parser.add_argument("-o", help="For processed data.")
     parser.add_argument("-p", help="bash wildcards.", default="*.nc")
+    parser.add_argument("-l", type=int, help="Latency in seconds. Delay w.r.t. actual time.", default=0)
     args = parser.parse_args()
 
     input_dir = args.i
@@ -118,4 +119,4 @@ if __name__ == "__main__":
 
 
     for file_path in glob.glob(os.path.join(input_dir, args.p)):
-        process_file(file_path)
+        process_file(file_path, latency=args.l)
