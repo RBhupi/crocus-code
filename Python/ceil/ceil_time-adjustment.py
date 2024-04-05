@@ -36,17 +36,21 @@ def adjust_time_variable(time_var, mod_time, midnight):
     """
     try:
         times = num2date(time_var[:], units=time_var.units)  # Convert num times to pyhton datetime objects
-        start_time = times[0] 
         # in this version we are getting interval from the file (No assumptions).
-        delta_seconds = [(time - start_time).total_seconds() for time in times]  
-        
-        seconds_since_midnight = (mod_time - midnight).total_seconds()
-        adjusted_times = [seconds_since_midnight + delta - delta_seconds[0] for delta in delta_seconds] 
+        delta_seconds = [(time - time[0]).total_seconds() for time in times]  
+
+        # This end of the last observations time should be align the file's modification time.  
+        total_interval = (times[-1] - times[0]).total_seconds()
+        seconds_since_midnight = (mod_time - midnight).total_seconds() - total_interval
+
+        adjusted_times = [seconds_since_midnight + delta for delta in delta_seconds] 
         
         time_var[:] = adjusted_times  # change nc time to new times
         time_var.units = f'seconds since {midnight.strftime("%Y-%m-%d 00:00:00")}'
     except Exception as e:
         logging.error(f"Error adjusting time variable: {e}")
+
+
 
 def adjust_time_axis(nc_file, mod_time):
     """
