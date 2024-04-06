@@ -29,7 +29,7 @@ def new_file_name(original_file_path, mod_time):
     return os.path.join(output_dir, new_base_name)
 
 
-# 
+
 def adjust_time_variable(time_var, mod_time, midnight):
     """
     Use file modification time.
@@ -37,10 +37,13 @@ def adjust_time_variable(time_var, mod_time, midnight):
     try:
         times = num2date(time_var[:], units=time_var.units)  # Convert num times to pyhton datetime objects
         # in this version we are getting interval from the file (No assumptions).
-        delta_seconds = [(time - time[0]).total_seconds() for time in times]  
+        delta_seconds = [(t - times[0]).total_seconds() for t in times]  
+        mod_time = mod_time.replace(tzinfo=None)
 
         # This end of the last observations time should be align the file's modification time.  
+        # i am using delta_Seconds because vaisla files last observation time is not same as file name.
         total_interval = (times[-1] - times[0]).total_seconds()
+        #time_interval = datetime.timedelta(seconds=delta_seconds[0])
         seconds_since_midnight = (mod_time - midnight).total_seconds() - total_interval
 
         adjusted_times = [seconds_since_midnight + delta for delta in delta_seconds] 
