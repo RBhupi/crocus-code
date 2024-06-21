@@ -47,7 +47,7 @@ def process_files(args):
                 selected_files.append(next_day_files[0])
 
             if selected_files:
-                daily_ds = xr.open_mfdataset(selected_files, combine="by_coords")
+                daily_ds = xr.open_mfdataset(selected_files, concat_dim='time', combine='nested')
 
                 start_of_day = pd.to_datetime(date_str).floor("D")
                 end_of_day = start_of_day + timedelta(days=1)
