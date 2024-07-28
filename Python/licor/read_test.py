@@ -314,6 +314,6 @@ def process_files_for_month(root_dir, year_month, metadata):
 
 # main
 root_dir = '/Users/bhupendra/data/delete1/'
-year_month = '2024/06'
+year_month = '2024/08'
 
 process_files_for_month(root_dir, year_month, metadata)
