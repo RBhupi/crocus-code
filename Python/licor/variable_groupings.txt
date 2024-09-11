@@ -1,0 +1,79 @@
+variable_groups = {
+    'corrected_fluxes': [
+        'Tau', 'qc_Tau', 'rand_err_Tau', 'H', 'qc_H', 'rand_err_H',
+        'LE', 'qc_LE', 'rand_err_LE', 'co2_flux', 'qc_co2_flux', 'rand_err_co2_flux',
+        'h2o_flux', 'qc_h2o_flux', 'rand_err_h2o_flux', 'ch4_flux', 'qc_ch4_flux', 'rand_err_ch4_flux'
+    ],
+    'storage_fluxes': [
+        'H_strg', 'LE_strg', 'co2_strg', 'h2o_strg', 'ch4_strg', 'none_strg'
+    ],
+    'vertical_advection_fluxes': [
+        'co2_vadv', 'h2o_vadv', 'ch4_vadv', 'none_vadv'
+    ],
+    'gas_densities_concentrations_and_timelags': [
+        'co2_molar_density', 'co2_mole_fraction', 'co2_mixing_ratio', 'co2_time_lag', 'co2_def_timelag',
+        'h2o_molar_density', 'h2o_mole_fraction', 'h2o_mixing_ratio', 'h2o_time_lag', 'h2o_def_timelag',
+        'ch4_molar_density', 'ch4_mole_fraction', 'ch4_mixing_ratio', 'ch4_time_lag', 'ch4_def_timelag',
+        'none_molar_density', 'none_mole_fraction', 'none_mixing_ratio', 'none_time_lag', 'none_def_timelag'
+    ],
+    'air_properties': [
+        'sonic_temperature', 'air_temperature', 'air_pressure', 'air_density', 'air_heat_capacity', 'air_molar_volume',
+        'ET', 'water_vapor_density', 'e', 'es', 'specific_humidity', 'RH', 'VPD', 'Tdew'
+    ],
+    'unrotated_wind': [
+        'u_unrot', 'v_unrot', 'w_unrot'
+    ],
+    'rotated_wind': [
+        'u_rot', 'v_rot', 'w_rot', 'wind_speed', 'max_wind_speed', 'wind_dir'
+    ],
+    'rotation_angles_for_tilt_correction': [
+        'yaw', 'pitch', 'roll'
+    ],
+    'turbulence': [
+        'u*', 'TKE', 'L', 'z_d_per_L', 'bowen_ratio', 'T*', 'model'
+    ],
+    'footprint': [
+        'x_peak', 'x_offset', 'x_10%', 'x_30%', 'x_50%', 'x_70%', 'x_90%'
+    ],
+    'uncorrected_fluxes_and_spectral_correction_factors_scf': [
+        'un_Tau', 'Tau_scf', 'un_H', 'H_scf', 'un_LE', 'LE_scf',
+        'un_co2_flux', 'co2_scf', 'un_h2o_flux', 'h2o_scf', 'un_ch4_flux', 'ch4_scf', 'un_none_flux', 'none_scf'
+    ],
+    'statistical_flags': [
+        'spikes_hf', 'amplitude_resolution_hf', 'drop_out_hf', 'absolute_limits_hf',
+        'skewness_kurtosis_hf', 'skewness_kurtosis_sf', 'discontinuities_hf', 'discontinuities_sf',
+        'timelag_hf', 'timelag_sf', 'attack_angle_hf', 'non_steady_wind_hf'
+    ],
+    'spikes': [
+        'u_spikes', 'v_spikes', 'w_spikes', 'ts_spikes', 'co2_spikes', 'h2o_spikes', 'ch4_spikes', 'none_spikes'
+    ],
+    'diagnostic_flags_LI-7200': [
+        'head_detect_LI7200', 't_out_LI7200', 't_in_LI7200', 'aux_in_LI7200',
+        'delta_p_LI7200', 'chopper_LI7200', 'detector_LI7200', 'pll_LI7200', 'sync_LI7200'
+    ],
+    'diagnostic_flags_LI-7500': [
+        'chopper_LI7500', 'detector_LI7500', 'pll_LI7500', 'sync_LI7500'
+    ],
+    'diagnostic_flags_LI-7700': [
+        'not_ready_LI7700', 'no_signal_LI7700', 're_unlocked_LI7700', 'bad_temp_LI7700',
+        'laser_temp_unregulated_LI7700', 'block_temp_unregulated_LI7700', 'motor_spinning_LI7700',
+        'pump_on_LI7700', 'top_heater_on_LI7700', 'bottom_heater_on_LI7700', 'calibrating_LI7700',
+        'motor_failure_LI7700', 'bad_aux_tc1_LI7700', 'bad_aux_tc2_LI7700', 'bad_aux_tc3_LI7700', 'box_connected_LI7700'
+    ],
+    'RSSI_LI-7200': [
+        'mean_value_RSSI_LI7200'
+    ],
+    'RSSI_LI-7500': [
+        'mean_value_LI7500'
+    ],
+    'variances': [
+        'u_var', 'v_var', 'w_var', 'ts_var', 'co2_var', 'h2o_var', 'ch4_var', 'none_var'
+    ],
+    'covariances': [
+        'w_per_ts_cov', 'w_per_co2_cov', 'w_per_h2o_cov', 'w_per_ch4_cov', 'w_per_none_cov'
+    ],
+    'custom_variables': [
+        'vin_sf_mean', 'co2_mean', 'h2o_mean', 'dew_point_mean', 'co2_signal_strength_7500_mean'
+    ]
+}
+
