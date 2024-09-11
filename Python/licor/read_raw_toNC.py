@@ -406,7 +406,6 @@ def process_files_for_month(root_dir, year_month):
     netcdf_filepath = os.path.join(nc_dir, netcdf_filename)
 
     try:
-        # Save with compression
         encoding = {
             var: {"zlib": True, "complevel": 5} for var in combined_ds.data_vars
         }
@@ -426,14 +425,14 @@ if __name__ == "__main__":
         "--year_month", 
         dest= 'year_month',
         type=str, 
-        required=True,  
+        required=True,
         help="Year and month in the format YYYY/MM, e.g., 2024/08."
     )
     parser.add_argument(
-        "--root_dir", 
+        "--root_dir",
         dest='root_dir',
-        type=str, 
-        default="/Users/bhupendra/projects/crocus/data/flux_data/data", 
+        type=str,
+        default="/Users/bhupendra/projects/crocus/data/flux_data/data",
         help="Root directory for  data. Default '/Users/bhupendra/projects/crocus/data/flux_data/data'."
     )
 

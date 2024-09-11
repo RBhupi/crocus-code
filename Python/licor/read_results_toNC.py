@@ -1008,4 +1008,4 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    process_files_for_month(args.root_dir, args.year_month)
+    process_files_for_month(args.root_dir, args.year_month, metadata)
