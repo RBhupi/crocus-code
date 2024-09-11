@@ -6,6 +6,7 @@ import xarray as xr
 import zipfile
 import re
 import logging
+import argparse
 
 # Configure logging
 logging.basicConfig(
@@ -419,8 +420,22 @@ def process_files_for_month(root_dir, year_month):
     shutil.rmtree(temp_data_dir)
 
 
-# Main execution
-root_dir = "/Users/bhupendra/projects/crocus/data/flux_data/data"
-year_month = "2024/08"
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Process raw data files for a given year and month.")
+    parser.add_argument(
+        "--year_month", 
+        dest= 'year_month',
+        type=str, 
+        required=True,  
+        help="Year and month in the format YYYY/MM, e.g., 2024/08."
+    )
+    parser.add_argument(
+        "--root_dir", 
+        dest='root_dir',
+        type=str, 
+        default="/Users/bhupendra/projects/crocus/data/flux_data/data", 
+        help="Root directory for  data. Default '/Users/bhupendra/projects/crocus/data/flux_data/data'."
+    )
 
-process_files_for_month(root_dir, year_month)
+    args = parser.parse_args()
+    process_files_for_month(args.root_dir, args.year_month)
