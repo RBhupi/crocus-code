@@ -993,17 +993,17 @@ def process_files_for_month(root_dir, year_month, metadata):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process raw data files for a given year and month.")
     parser.add_argument(
-        "--year_month", 
+        "--year_month",
         dest= 'year_month',
-        type=str, 
-        required=True,  
+        type=str,
+        required=True,
         help="Year and month in the format YYYY/MM, e.g., 2024/08."
     )
     parser.add_argument(
-        "--root_dir", 
+        "--root_dir",
         dest='root_dir',
-        type=str, 
-        default="/Users/bhupendra/projects/crocus/data/flux_data/data", 
+        type=str,
+        default="/Users/bhupendra/projects/crocus/data/flux_data/data",
         help="Root directory for  data. Default '/Users/bhupendra/projects/crocus/data/flux_data/data'."
     )
 

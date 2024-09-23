@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Define the root directory
+# Root directory. this is rsync from smartflux
 ROOT_DIR="/Users/bhupendra/projects/crocus/data/flux_data/data"
 
 # Calculate the previous month in YYYY/MM format
@@ -36,6 +36,10 @@ if [ ! -f "$RESULTS_FILE" ]; then
     echo "Processing flux computation results for $YEAR_MONTH..." | tee -a $LOG_FILE
     python /Users/bhupendra/projects/crocus/code/Python/licor/read_results_toNC.py --year_month $YEAR_MONTH --root_dir $ROOT_DIR >> $LOG_FILE 2>&1
 fi
+
+# Sync the processed NetCDF files to the GCE
+echo "Syncing processed NetCDF fils..." | tee -a $LOG_FILE
+rsync -azP -e "ssh -o StrictHostKeyChecking=no" $ROOT_DIR/* braut@homes.cels.anl.gov:/nfs/gce/projects/crocus-server-admins/licor-flux-data-beta/ >> $LOG_FILE 2>&1
 
 # Log completion
 echo "Processing complete for $YEAR_MONTH!" | tee -a $LOG_FILE
