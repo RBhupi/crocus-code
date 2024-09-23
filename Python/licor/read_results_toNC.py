@@ -991,8 +991,10 @@ def df_to_xarray(df, metadata):
     return ds
 
 
-def process_files(root_dir, start_datetime, end_datetime, metadata):
+def process_files(args, start_datetime, end_datetime, metadata):
     """Processes files and creates a NetCDF file for the specified date range."""
+    root_dir = args.root_dir
+    prefix = args.prefix
     temp_csv_dir = os.path.join(root_dir, "temp", "csv")
     os.makedirs(temp_csv_dir, exist_ok=True)
 
@@ -1006,13 +1008,14 @@ def process_files(root_dir, start_datetime, end_datetime, metadata):
     combined_df = combine_csv_files(csv_files, metadata)
     combined_ds = df_to_xarray(combined_df, metadata)
 
-    nc_dir = os.path.join(root_dir, "netcdf")
+    year_month_str = end_datetime.strftime("%Y%m")
+    nc_dir = os.path.join(root_dir, "netcdf", year_month_str, "resnc")
     os.makedirs(nc_dir, exist_ok=True)
 
     # Make output file name
     start_str = start_datetime.strftime("%Y%m%dT%H%M%S")
     end_str = end_datetime.strftime("%Y%m%dT%H%M%S")
-    netcdf_filename = f"results_smartflux_{start_str}_to_{end_str}.nc"
+    netcdf_filename = f"{prefix}-results-{end_str}.nc"
     netcdf_filepath = os.path.join(nc_dir, netcdf_filename)
 
     # Remove the existing file
@@ -1049,10 +1052,18 @@ if __name__ == "__main__":
         default="/Users/bhupendra/projects/crocus/data/flux_data/data",
         help="Root directory for data. Default '/Users/bhupendra/projects/crocus/data/flux_data/data'."
     )
+    parser.add_argument(
+        "--prefix",
+        dest='prefix',
+        type=str,
+        default="crocus-uic-smartflux",
+        help="Prefix for output filename."
+    )
+
 
     args = parser.parse_args()
 
     start_datetime = datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%S")
     end_datetime = datetime.strptime(args.end, "%Y-%m-%dT%H:%M:%S")
 
-    process_files(args.root_dir, start_datetime, end_datetime, metadata)
+    process_files(args, start_datetime, end_datetime, metadata)
