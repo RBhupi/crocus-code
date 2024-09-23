@@ -8,6 +8,8 @@ import re
 import logging
 import argparse
 
+from datetime import datetime
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -182,13 +184,31 @@ var_metadata = {
 }
 
 
-def extract_all_zip_files_for_month(root_dir, year_month, temp_csv_dir):
-    """Extracts all .ghg files for a given month."""
+def extract_zip_files(root_dir, start_dt, end_dt, temp_csv_dir):
+    """Extracts all .ghg files within a given date and time range."""
+    year_month = start_datetime.strftime("%Y/%m")
+
     month_dir = os.path.join(root_dir, "raw", year_month)
+
     if os.path.isdir(month_dir):
+        # Find all .ghg files
         zip_files = glob.glob(os.path.join(month_dir, "*.ghg"))
-        logging.info(f"Found {len(zip_files)} ZIP files in {month_dir}")
+
+        # Filter files based on the date range
+        files_in_range = []
         for zip_file in zip_files:
+            # Extract date from file name (assumes filename structure YYYY-MM-DDTHHMMSS)
+            match = re.search(r"(\d{4}-\d{2}-\d{2}T\d{6})", os.path.basename(zip_file))
+            if match:
+                file_datetime_str = match.group(1)
+                file_dt = datetime.strptime(file_datetime_str, "%Y-%m-%dT%H%M%S")
+                
+                if start_dt <= file_dt <= end_dt:
+                    files_in_range.append(zip_file)
+
+        logging.info(f"Found {len(files_in_range)} files in the date range {start_datetime} to {end_datetime}")
+        
+        for zip_file in files_in_range:
             logging.info(f"Extracting {zip_file}")
             try:
                 with zipfile.ZipFile(zip_file, "r") as zip_ref:
@@ -376,18 +396,18 @@ def df_to_xarray(df, metadata):
     return ds
 
 
-def process_files_for_month(root_dir, year_month):
-    """Processes files and creates a NetCDF file."""
+def process_files(root_dir, start_datetime, end_datetime):
+    """Processes files and creates a NetCDF file for the specified date range."""
     temp_data_dir = os.path.join(root_dir, "temp", "data")
     os.makedirs(temp_data_dir, exist_ok=True)
 
-    extract_all_zip_files_for_month(root_dir, year_month, temp_data_dir)
+    extract_zip_files(root_dir, start_datetime, end_datetime, temp_data_dir)
 
     data_files = glob.glob(os.path.join(temp_data_dir, "*.data"))
     metadata_files = [f.replace(".data", ".metadata") for f in data_files]
 
     if not data_files:
-        logging.error("No data files found for the given month.")
+        logging.error(f"No data files found between {start_datetime} and {end_datetime}.")
         return
 
     combined_df, metadata = combine_data_files(data_files, metadata_files)
@@ -402,7 +422,11 @@ def process_files_for_month(root_dir, year_month):
 
     nc_dir = os.path.join(root_dir, "netcdf")
     os.makedirs(nc_dir, exist_ok=True)
-    netcdf_filename = f"smartflux_rawdata_{year_month.replace('/', '_')}.nc"
+
+    # Format output file name based on the start and end date
+    start_str = start_datetime.strftime("%Y%m%dT%H%M%S")
+    end_str = end_datetime.strftime("%Y%m%dT%H%M%S")
+    netcdf_filename = f"raw_smartflux_{start_str}_to_{end_str}.nc"
     netcdf_filepath = os.path.join(nc_dir, netcdf_filename)
 
     try:
@@ -419,14 +443,22 @@ def process_files_for_month(root_dir, year_month):
     shutil.rmtree(temp_data_dir)
 
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process raw data files for a given year and month.")
+    parser = argparse.ArgumentParser(description="Process raw data files for a given time range.")
     parser.add_argument(
-        "--year_month", 
-        dest= 'year_month',
-        type=str, 
+        "--start",
+        dest="start",
+        type=str,
         required=True,
-        help="Year and month in the format YYYY/MM, e.g., 2024/08."
+        help="Start date and time in the format YYYY-MM-DDTHH:MM:SS, e.g., 2024-08-01T00:00:00."
+    )
+    parser.add_argument(
+        "--end",
+        dest="end",
+        type=str,
+        required=True,
+        help="End date and time in the format YYYY-MM-DDTHH:MM:SS, e.g., 2024-08-01T23:59:59."
     )
     parser.add_argument(
         "--root_dir",
@@ -437,4 +469,8 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    process_files_for_month(args.root_dir, args.year_month)
+
+    start_datetime = datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%S")
+    end_datetime = datetime.strptime(args.end, "%Y-%m-%dT%H:%M:%S")
+
+    process_files(args.root_dir, start_datetime, end_datetime)
