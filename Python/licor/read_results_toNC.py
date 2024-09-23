@@ -10,12 +10,26 @@ import os
 import glob
 import zipfile
 import shutil
+import re
 import pandas as pd
 import numpy as np
 from datetime import datetime
 import xarray as xr
 
 import argparse
+
+
+# Configure logging
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("process_log.log", mode="w"),
+    ],
+)
+
 
 # this dict was the most critical for getting this data into netcdf.
 # The names and units are changes to adapt to netcdf requirements.
@@ -872,14 +886,37 @@ metadata = {
     },
 }
 
+def extract_zip_files(root_dir, start_dt, end_dt, temp_csv_dir):
+    """Extracts all .zip files within a given date and time range."""
+    year_month = start_dt.strftime("%Y/%m")
 
-def extract_all_zip_files_for_month(root_dir, year_month, temp_csv_dir):
     month_dir = os.path.join(root_dir, "results", year_month)
+
     if os.path.isdir(month_dir):
+        # Find all .zip files
         zip_files = glob.glob(os.path.join(month_dir, "*.zip"))
+
+        # Filter files for date range
+        files_in_range = []
         for zip_file in zip_files:
-            with zipfile.ZipFile(zip_file, "r") as zip_ref:
-                zip_ref.extractall(temp_csv_dir)
+            # Extract date from (assumes filename structure YYYY-MM-DDTHHMMSS)
+            match = re.search(r"(\d{4}-\d{2}-\d{2}T\d{6})", os.path.basename(zip_file))
+            if match:
+                file_datetime_str = match.group(1)
+                file_dt = datetime.strptime(file_datetime_str, "%Y-%m-%dT%H%M%S")
+
+                if start_dt <= file_dt <= end_dt:
+                    files_in_range.append(zip_file)
+
+        logging.info(f"Found {len(files_in_range)} files in the date range {start_dt} to {end_dt}")
+
+        for zip_file in files_in_range:
+            logging.info(f"Extracting {zip_file}")
+            try:
+                with zipfile.ZipFile(zip_file, "r") as zip_ref:
+                    zip_ref.extractall(temp_csv_dir)
+            except zipfile.BadZipFile as e:
+                logging.error(f"Failed to extract {zip_file}: {e}")
 
 
 def read_and_attach_headers(file_path, metadata):
@@ -901,8 +938,8 @@ def read_and_attach_headers(file_path, metadata):
     # Drop the original 'date' column
     df = df.drop(columns=["date"])
 
-    print(f"Read and processed {file_path}")
-    print(f"Data time range: {df['time'].min()} to {df['time'].max()}")
+    logging.info(f"Read and processed {file_path}")
+    logging.info(f"Data time range: {df['time'].min()} to {df['time'].max()}")
 
     return df
 
@@ -928,47 +965,42 @@ def combine_csv_files(file_paths, metadata):
     # Sort the DataFrame by 'time'
     combined_df = combined_df.sort_values(by="time").reset_index(drop=True)
 
-    print(
-        f"Combined DataFrame time range: {combined_df['time'].min()} to {combined_df['time'].max()}"
-    )
+    logging.info(f"Combined DataFrame time range: {combined_df['time'].min()} to {combined_df['time'].max()}")
 
     return combined_df
 
 
 def df_to_xarray(df, metadata):
-    # Convert the DataFrame to an xarray Dataset
+    # Convert the DataFrame to an xarray
     ds = xr.Dataset.from_dataframe(df.set_index("time"))
 
-    # Attach metadata to each variable in the Dataset
+    # Attach metadata to each variable
     for var_name in df.columns:
         if var_name in metadata:
             ds[var_name].attrs["long_name"] = metadata[var_name]["long_name"]
             ds[var_name].attrs["units"] = metadata[var_name]["units"]
             ds[var_name].attrs["description"] = metadata[var_name]["description"]
 
-    # Set CF standard attributes for 'time'
+    # Set CF standard for 'time'
     ds.time.attrs["long_name"] = "time"
     ds.time.attrs["units"] = "seconds since 1970-01-01 00:00:00"
     ds.time.attrs["calendar"] = "standard"
 
-    print(
-        f"Converted to xarray Dataset with time range: {ds['time'].min().values} to {ds['time'].max().values}"
-    )
+    logging.info(f"Converted to xarray Dataset with time range: {ds['time'].min().values} to {ds['time'].max().values}")
     ds = drop_missing_columns(ds)
     return ds
 
 
-def process_files_for_month(root_dir, year_month, metadata):
+def process_files(root_dir, start_datetime, end_datetime, metadata):
+    """Processes files and creates a NetCDF file for the specified date range."""
     temp_csv_dir = os.path.join(root_dir, "temp", "csv")
     os.makedirs(temp_csv_dir, exist_ok=True)
 
-    extract_all_zip_files_for_month(root_dir, year_month, temp_csv_dir)
+    extract_zip_files(root_dir, start_datetime, end_datetime, temp_csv_dir)
 
-    csv_files = glob.glob(
-        os.path.join(temp_csv_dir, "output", "eddypro_exp_full_output*_exp.csv")
-    )
+    csv_files = glob.glob(os.path.join(temp_csv_dir, "output", "eddypro_exp_full_output*_exp.csv"))
     if not csv_files:
-        print("No CSV files found for the given month.")
+        logging.error("No CSV files found for the given date range.")
         return
 
     combined_df = combine_csv_files(csv_files, metadata)
@@ -976,36 +1008,51 @@ def process_files_for_month(root_dir, year_month, metadata):
 
     nc_dir = os.path.join(root_dir, "netcdf")
     os.makedirs(nc_dir, exist_ok=True)
-    netcdf_filename = f"smartflux_data_{year_month.replace('/', '_')}.nc"
+
+    # Make output file name
+    start_str = start_datetime.strftime("%Y%m%dT%H%M%S")
+    end_str = end_datetime.strftime("%Y%m%dT%H%M%S")
+    netcdf_filename = f"results_smartflux_{start_str}_to_{end_str}.nc"
     netcdf_filepath = os.path.join(nc_dir, netcdf_filename)
 
-    # Remove the existing file if it exists
+    # Remove the existing file
     if os.path.exists(netcdf_filepath):
         os.remove(netcdf_filepath)
 
     combined_ds.to_netcdf(netcdf_filepath, unlimited_dims=["time"])
 
-    print(f"Written combined dataset to {netcdf_filepath}")
+    logging.info(f"Written combined dataset to {netcdf_filepath}")
 
     shutil.rmtree(temp_csv_dir)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process raw data files for a given year and month.")
+    parser = argparse.ArgumentParser(description="Process raw data files for a given time range.")
     parser.add_argument(
-        "--year_month",
-        dest= 'year_month',
+        "--start",
+        dest="start",
         type=str,
         required=True,
-        help="Year and month in the format YYYY/MM, e.g., 2024/08."
+        help="Start date and time in the format YYYY-MM-DDTHH:MM:SS, e.g., 2024-08-01T00:00:00."
+    )
+    parser.add_argument(
+        "--end",
+        dest="end",
+        type=str,
+        required=True,
+        help="End date and time in the format YYYY-MM-DDTHH:MM:SS, e.g., 2024-08-01T23:59:59."
     )
     parser.add_argument(
         "--root_dir",
         dest='root_dir',
         type=str,
         default="/Users/bhupendra/projects/crocus/data/flux_data/data",
-        help="Root directory for  data. Default '/Users/bhupendra/projects/crocus/data/flux_data/data'."
+        help="Root directory for data. Default '/Users/bhupendra/projects/crocus/data/flux_data/data'."
     )
 
     args = parser.parse_args()
-    process_files_for_month(args.root_dir, args.year_month, metadata)
+
+    start_datetime = datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%S")
+    end_datetime = datetime.strptime(args.end, "%Y-%m-%dT%H:%M:%S")
+
+    process_files(args.root_dir, start_datetime, end_datetime, metadata)
