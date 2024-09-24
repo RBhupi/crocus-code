@@ -18,6 +18,12 @@ FILE_PREFIX="crocus-uic-smartflux"
 
 > $LOG_FILE
 
+
+# Start SSH agent and add the key
+eval $(ssh-agent -s)
+ssh-add ~/.ssh/id_rsa # ~/.ssh/id_rsa_no_passphrase if did not work
+
+
 TODAY=$(date +"%Y-%m-%d")
 YESTERDAY=$(date -v-1d +"%Y-%m-%d")
 
@@ -36,8 +42,8 @@ while [[ "$CURRENT_DATE" < "$END_DATE" || "$CURRENT_DATE" == "$END_DATE" ]]; do
 
     YEAR_MONTH=$(date -j -f "%Y-%m-%dT%H:%M:%S" "$START_DATETIME" +"%Y%m")
 
-    RAW_NC_FILE="$NC_DIR/$YEAR_MONTH/rawnc/$FILE_PREFIX-raw-$(date -j -f "%Y-%m-%dT%H:%M:%S" "$END_DATETIME" +"%Y%m%dT%H%M%S").nc"
-    RESULTS_NC_FILE="$NC_DIR/$YEAR_MONTH/resnc/$FILE_PREFIX-results-$(date -j -f "%Y-%m-%dT%H:%M:%S" "$END_DATETIME" +"%Y%m%dT%H%M%S").nc"
+    RAW_NC_FILE="$NC_DIR/rawnc/$YEAR_MONTH/$FILE_PREFIX-raw-$(date -j -f "%Y-%m-%dT%H:%M:%S" "$END_DATETIME" +"%Y%m%dT%H%M%S").nc"
+    RESULTS_NC_FILE="$NC_DIR/resnc/$YEAR_MONTH/$FILE_PREFIX-results-$(date -j -f "%Y-%m-%dT%H:%M:%S" "$END_DATETIME" +"%Y%m%dT%H%M%S").nc"
 
     if [ ! -f "$RAW_NC_FILE" ]; then
         echo "[$(date +"%Y-%m-%d %H:%M:%S")] Processing raw data for $CURRENT_DATE..." | tee -a $LOG_FILE
@@ -67,4 +73,8 @@ done
 echo "[$(date +"%Y-%m-%d %H:%M:%S")] Syncing processed NetCDF files to GCE..." | tee -a $LOG_FILE
 rsync -azP -e "ssh -o StrictHostKeyChecking=no" $NC_DIR/* $GCE_DESTINATION >> $LOG_FILE 2>&1
 
+eval $(ssh-agent -k)
+
 echo "[$(date +"%Y-%m-%d %H:%M:%S")] Processing complete!" | tee -a $LOG_FILE
+
+

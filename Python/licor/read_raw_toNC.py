@@ -423,7 +423,7 @@ def process_files(args, start_datetime, end_datetime):
         return
 
     year_month_str = end_datetime.strftime("%Y%m")
-    nc_dir = os.path.join(root_dir, "netcdf", year_month_str, "rawnc")
+    nc_dir = os.path.join(root_dir, "netcdf", "rawnc", year_month_str)
     os.makedirs(nc_dir, exist_ok=True)
 
     # Format output file name based on the start and end date

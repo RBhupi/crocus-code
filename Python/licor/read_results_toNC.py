@@ -1009,7 +1009,7 @@ def process_files(args, start_datetime, end_datetime, metadata):
     combined_ds = df_to_xarray(combined_df, metadata)
 
     year_month_str = end_datetime.strftime("%Y%m")
-    nc_dir = os.path.join(root_dir, "netcdf", year_month_str, "resnc")
+    nc_dir = os.path.join(root_dir, "netcdf", "resnc", year_month_str)
     os.makedirs(nc_dir, exist_ok=True)
 
     # Make output file name
