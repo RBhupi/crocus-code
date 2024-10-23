@@ -68,14 +68,21 @@ while [[ "$CURRENT_DATE" < "$END_DATE" || "$CURRENT_DATE" == "$END_DATE" ]]; do
         echo "[$(date +"%Y-%m-%d %H:%M:%S")] Results data already processed for $CURRENT_DATE, skipping..." | tee -a $LOG_FILE
     fi
 
-    # Generate Quick looks
+    QUICKLOOK_FILE="$NC_DIR/resnc/$YEAR_MONTH/quicklook-$FILE_PREFIX-results-$(date -j -f "%Y-%m-%dT%H:%M:%S" "$END_DATETIME" +"%Y%m%dT%H%M%S").png"
+
+    # Generate Quick looks if not already present
     if [ -f "$RESULTS_NC_FILE" ]; then
-        echo "[$(date +"%Y-%m-%d %H:%M:%S")] Generating quick-lookd for $RESULTS_NC_FILE..." | tee -a $LOG_FILE
-        python $PLOT_SCRIPT --nc_file "$RESULTS_NC_FILE" --output_dir "$NC_DIR/resnc/$YEAR_MONTH" --prefix "quicklook" | tee -a $LOG_FILE 2>&1
-        echo "[$(date +"%Y-%m-%d %H:%M:%S")] Quick-look plots generated and saved." | tee -a $LOG_FILE
+        if [ ! -f "$QUICKLOOK_FILE" ]; then
+            echo "[$(date +"%Y-%m-%d %H:%M:%S")] Generating quick-look for $RESULTS_NC_FILE..." | tee -a $LOG_FILE
+            python $PLOT_SCRIPT --nc_file "$RESULTS_NC_FILE" --output_dir "$NC_DIR/resnc/$YEAR_MONTH" --prefix "quicklook" | tee -a $LOG_FILE 2>&1
+            echo "[$(date +"%Y-%m-%d %H:%M:%S")] Quick-look plot generated and saved." | tee -a $LOG_FILE
+        else
+            echo "[$(date +"%Y-%m-%d %H:%M:%S")] Quick-look already exists for $RESULTS_NC_FILE, skipping..." | tee -a $LOG_FILE
+        fi
     else
         echo "[$(date +"%Y-%m-%d %H:%M:%S")] ERROR: Results NetCDF file not found for $CURRENT_DATE!" | tee -a $LOG_FILE
     fi
+
 
     CURRENT_DATE=$(date -j -v+1d -f "%Y-%m-%d" "$CURRENT_DATE" +"%Y-%m-%d")
 done
@@ -85,6 +92,6 @@ rsync -azP -e "ssh -o StrictHostKeyChecking=no" $NC_DIR/* $GCE_DESTINATION >> $L
 
 # eval $(ssh-agent -k)
 
-echo "[$(date +"%Y-%m-%d %H:%M:%S")] Processing complete!" | tee -a $LOG_FILE
+echo "[$(date +"%Y-%m-%d %H:%M:%S")] Done! Check the log file for details: $LOG_FILE" | tee -a $LOG_FILE
 
 

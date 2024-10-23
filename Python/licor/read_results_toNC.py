@@ -34,7 +34,7 @@ logging.basicConfig(
 # this dict was the most critical for getting this data into netcdf.
 # The names and units are changes to adapt to netcdf requirements.
 # https://www.licor.com/env/support/EddyPro/topics/output-files-full-output.html
-metadata = {
+var_metadata = {
     "filename": {
         "long_name": "file name",
         "units": "NA",
@@ -919,12 +919,12 @@ def extract_zip_files(root_dir, start_dt, end_dt, temp_csv_dir):
                 logging.error(f"Failed to extract {zip_file}: {e}")
 
 
-def read_and_attach_headers(file_path, metadata):
+def read_and_attach_headers(file_path, var_metadata):
     # Read the CSV file skipping the first three rows and without headers
     df = pd.read_csv(file_path, skiprows=[0, 1, 2], header=None)
 
     # Extract the variable names from the metadata dictionary
-    headers = list(metadata.keys())
+    headers = list(var_metadata.keys())
 
     # Attach the headers to the DataFrame
     df.columns = headers
@@ -951,12 +951,12 @@ def drop_missing_columns(ds):
     return ds
 
 
-def combine_csv_files(file_paths, metadata):
+def combine_csv_files(file_paths, var_metadata):
     dataframes = []
 
     for file_path in file_paths:
         # Read each file and attach headers
-        df = read_and_attach_headers(file_path, metadata)
+        df = read_and_attach_headers(file_path, var_metadata)
         dataframes.append(df)
 
     # Concatenate all DataFrames along the rows
@@ -970,16 +970,16 @@ def combine_csv_files(file_paths, metadata):
     return combined_df
 
 
-def df_to_xarray(df, metadata):
+def df_to_xarray(df, var_metadata):
     # Convert the DataFrame to an xarray
     ds = xr.Dataset.from_dataframe(df.set_index("time"))
 
     # Attach metadata to each variable
     for var_name in df.columns:
-        if var_name in metadata:
-            ds[var_name].attrs["long_name"] = metadata[var_name]["long_name"]
-            ds[var_name].attrs["units"] = metadata[var_name]["units"]
-            ds[var_name].attrs["description"] = metadata[var_name]["description"]
+        if var_name in var_metadata:
+            ds[var_name].attrs["long_name"] = var_metadata[var_name]["long_name"]
+            ds[var_name].attrs["units"] = var_metadata[var_name]["units"]
+            ds[var_name].attrs["description"] = var_metadata[var_name]["description"]
 
     # Set CF standard for 'time'
     ds.time.attrs["long_name"] = "time"
@@ -991,7 +991,7 @@ def df_to_xarray(df, metadata):
     return ds
 
 
-def process_files(args, start_datetime, end_datetime, metadata):
+def process_files(args, start_datetime, end_datetime, var_metadata):
     """Processes files and creates a NetCDF file for the specified date range."""
     root_dir = args.root_dir
     prefix = args.prefix
@@ -1005,8 +1005,8 @@ def process_files(args, start_datetime, end_datetime, metadata):
         logging.error("No CSV files found for the given date range.")
         return
 
-    combined_df = combine_csv_files(csv_files, metadata)
-    combined_ds = df_to_xarray(combined_df, metadata)
+    combined_df = combine_csv_files(csv_files, var_metadata)
+    combined_ds = df_to_xarray(combined_df, var_metadata)
 
     year_month_str = end_datetime.strftime("%Y%m")
     nc_dir = os.path.join(root_dir, "netcdf", "resnc", year_month_str)
@@ -1066,4 +1066,5 @@ if __name__ == "__main__":
     start_datetime = datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%S")
     end_datetime = datetime.strptime(args.end, "%Y-%m-%dT%H:%M:%S")
 
-    process_files(args, start_datetime, end_datetime, metadata)
+    process_files(args, start_datetime, end_datetime, var_metadata)
+    
