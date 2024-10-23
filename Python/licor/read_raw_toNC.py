@@ -29,32 +29,32 @@ var_metadata = {
     },
     "Sequence_Number": {
         "long_name": "Sequence number",
-        "units": "NA",
+        "units": "#",
         "description": "Index value, increments every 3.3 ms (1/300s)",
     },
     "Diagnostic_Value": {
         "long_name": "Diagnostic value",
-        "units": "NA",
+        "units": "#",
         "description": "Diagnostic value 0-8191",
     },
     "Diagnostic_Value_2": {
         "long_name": "Secondary diagnostic value",
-        "units": "NA",
+        "units": "#",
         "description": "Diagnostic value 0 or 1 (sync clocks=1).",
     },
     "DS_Diagnostic_Value": {
         "long_name": "DS diagnostic value",
-        "units": "NA",
+        "units": "#",
         "description": "Diagnostic value for the DS channel",
     },
     "CO2_Absorptance": {
         "long_name": "CO2 absorptance",
-        "units": "NA",
+        "units": "#",
         "description": "Absorptance measurement for CO2",
     },
     "H2O_Absorptance": {
         "long_name": "H2O absorptance",
-        "units": "NA",
+        "units": "#",
         "description": "Absorptance measurement for H2O",
     },
     "CO2_mmol_m^3": {
@@ -182,6 +182,22 @@ var_metadata = {
         "description": "Data integrity checksum",
     },
 }
+
+
+def attach_metadata(metadata):
+    metadata.update({
+        'data_contact': 'Bhupendra Raut <braut@anl.gov>',
+        'flux_contact': 'Sujan Pal <spal@anl.gov>',
+        'creator': 'CROCUS Measurement Strategy Team',
+        'project': 'Community Research on Climate and Urban Science (CROCUS) an Urban Integrated Field Laboratory',
+        'reference': '',
+        'data_policy': 'Open data, follows FAIR principals',
+        'institution': 'Argonne National Laboratory',
+        'funding_source': 'U.S. DOE Office of Science, Biological and Environmental Research program',
+        'data_creation_date': datetime.now().strftime("%Y-%m-%d"),
+    })
+
+    return metadata
 
 
 def extract_zip_files(root_dir, start_dt, end_dt, temp_csv_dir):
@@ -331,6 +347,8 @@ def combine_data_files(data_file_paths, metadata_file_paths):
 
     for data_file_path, metadata_file_path in zip(data_file_paths, metadata_file_paths):
         df, file_metadata = read_data_file(data_file_path)
+        file_metadata = attach_metadata(file_metadata)
+
         if df is not None:
             dataframes.append(df)
         else:

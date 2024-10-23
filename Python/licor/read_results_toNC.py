@@ -37,17 +37,17 @@ logging.basicConfig(
 var_metadata = {
     "filename": {
         "long_name": "file name",
-        "units": "NA",
+        "units": "",
         "description": "Name of the file",
     },
     "date": {
         "long_name": "date",
-        "units": "NA",
+        "units": "yyyy-mm-dd",
         "description": "Date of the measurement",
     },
     "time": {
         "long_name": "time",
-        "units": "NA",
+        "units": "HH:MM",
         "description": "Time of the measurement",
     },
     "DOY": {
@@ -453,7 +453,7 @@ var_metadata = {
         "units": "m+2s-2",
         "description": "Turbulent kinetic energy",
     },
-    "L": {"long_name": "Obukhov length", "units": "m", "description": "Obukhov length"},
+    "L": {"long_name": "Monin-Obukhov length", "units": "m", "description": "Monin-Obukhov length"},
     "z_d_per_L": {
         "long_name": "stability parameter",
         "units": "#",
@@ -461,7 +461,7 @@ var_metadata = {
     },
     "bowen_ratio": {
         "long_name": "Bowen ratio",
-        "units": "K",
+        "units": "#",
         "description": "Bowen ratio",
     },
     "T*": {
@@ -887,6 +887,22 @@ var_metadata = {
 }
 
 
+def get_file_metadata(root_dir, dt):
+    metadata = extract_metadata_from_raw(root_dir, dt)
+
+    metadata.update({
+        'data_contact': 'Bhupendra Raut <braut@anl.gov>',
+        'flux_contact': 'Sujan Pal <spal@anl.gov>',
+        'creator': 'CROCUS Measurement Strategy Team',
+        'project': 'Community Research on Climate and Urban Science (CROCUS) an Urban Integrated Field Laboratory',
+        'reference': '',
+        'data_policy': 'Open data, follows FAIR principals',
+        'institution': 'Argonne National Laboratory',
+        'funding_source': 'U.S. DOE Office of Science, Biological and Environmental Research program',
+        'data_creation_date': datetime.now().strftime("%Y-%m-%d"),
+    })
+
+    return metadata
 
 
 def read_metadata_file(metadata_file_path):
@@ -1098,8 +1114,13 @@ def process_files(args, start_datetime, end_datetime, var_metadata):
         logging.error("No CSV files found for the given date range.")
         return
 
+    file_metadata = get_file_metadata(root_dir, start_datetime)
     combined_df = combine_csv_files(csv_files, var_metadata)
     combined_ds = df_to_xarray(combined_df, var_metadata)
+
+    #Copy metadata to xaray
+    for key, value in file_metadata.items():
+        combined_ds.attrs[key] = value
 
     year_month_str = end_datetime.strftime("%Y%m")
     nc_dir = os.path.join(root_dir, "netcdf", "resnc", year_month_str)
