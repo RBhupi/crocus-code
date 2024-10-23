@@ -929,6 +929,56 @@ def read_metadata_file(metadata_file_path):
 
 
 
+
+def extract_metadata_from_raw(root_dir, reference_datetime):
+    """Extracts metadata from a .ghg file from raw dir."""
+    year_month = reference_datetime.strftime("%Y/%m")
+    reference_date_str = reference_datetime.strftime("%Y-%m-%d")
+    raw_dir = os.path.join(root_dir, "raw", year_month)
+    temp_meta_dir = os.path.join(root_dir, "temp", "temp_meta")
+
+    if not os.path.isdir(raw_dir):
+        logging.error(f"Raw directory {raw_dir} not found.")
+        return None
+
+    os.makedirs(temp_meta_dir, exist_ok=True)
+
+    # Find the first .ghg file on the same day (ignor time)
+    ghg_files = sorted(glob.glob(os.path.join(raw_dir, f"{reference_date_str}T*.ghg")))
+    if ghg_files:
+        ghg_file = ghg_files[0]  # Pick the first .ghg file found
+        logging.info(f"Using .ghg file {ghg_file} for metadata extraction")
+
+        try:
+            # Unzip the .ghg file into the temp_meta directory
+            with zipfile.ZipFile(ghg_file, 'r') as zip_ref:
+                zip_ref.extractall(temp_meta_dir)
+        except zipfile.BadZipFile as e:
+            logging.error(f"Failed to extract {ghg_file}: {e}")
+            shutil.rmtree(temp_meta_dir)
+            return None
+
+        # Look for the .metadata 
+        metadata_files = sorted(glob.glob(os.path.join(temp_meta_dir, "*.metadata")))
+        if metadata_files:
+            metadata_file = metadata_files[0] # there should be only one 
+            metadata = read_metadata_file(metadata_file)
+
+            # Clean up
+            shutil.rmtree(temp_meta_dir)
+            logging.info(f"Metadata extracted successfully from {metadata_file}")
+            return metadata
+        else:
+            logging.error(f"No .metadata file found in {ghg_file}")
+            shutil.rmtree(temp_meta_dir)
+            return None
+    else:
+        logging.error(f"No .ghg files found for the date {reference_date_str}.")
+        shutil.rmtree(temp_meta_dir)
+        return None
+
+
+
 def extract_zip_files(root_dir, start_dt, end_dt, temp_csv_dir):
     """Extracts all .zip files within a given date and time range."""
     year_month = start_dt.strftime("%Y/%m")
