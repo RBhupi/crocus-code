@@ -886,6 +886,49 @@ var_metadata = {
     },
 }
 
+
+
+
+def read_metadata_file(metadata_file_path):
+    """Reads metadata from a raw file. Tested."""
+    logging.info(f"Reading metadata file {metadata_file_path}")
+    desired_keys = {
+        "site_name": r"site_name\s*=\s*(.+)",
+        "altitude": r"altitude\s*=\s*(.+)",
+        "latitude": r"latitude\s*=\s*(.+)",
+        "longitude": r"longitude\s*=\s*(.+)",
+        "station_name": r"station_name\s*=\s*(.+)",
+        "logger_id": r"logger_id\s*=\s*(.+)",
+        "acquisition_frequency": r"acquisition_frequency\s*=\s*(.+)",
+        "file_duration": r"file_duration\s*=\s*(.+)",
+        "instr_1_manufacturer": r"instr_1_manufacturer\s*=\s*(.+)",
+        "instr_1_model": r"instr_1_model\s*=\s*(.+)",
+        "instr_1_sn": r"instr_1_sn\s*=\s*(.+)",
+        "instr_2_manufacturer": r"instr_2_manufacturer\s*=\s*(.+)",
+        "instr_2_model": r"instr_2_model\s*=\s*(.+)",
+        "instr_2_sn": r"instr_2_sn\s*=\s*(.+)",
+    }
+
+    metadata = {}
+
+    try:
+        with open(metadata_file_path, "r") as file:
+            for line in file:
+                for key, pattern in desired_keys.items():
+                    match = re.search(pattern, line)
+                    if match:
+                        metadata[key] = match.group(1).strip()
+    except FileNotFoundError as e:
+        logging.error(f"Metadata file not found: {e}")
+        return None
+
+    logging.info(f"Extracted metadata from {metadata_file_path}")
+    #print(metadata)
+    #exit()
+    return metadata
+
+
+
 def extract_zip_files(root_dir, start_dt, end_dt, temp_csv_dir):
     """Extracts all .zip files within a given date and time range."""
     year_month = start_dt.strftime("%Y/%m")
