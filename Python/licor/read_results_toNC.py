@@ -457,7 +457,7 @@ var_metadata = {
     "z_d_per_L": {
         "long_name": "stability parameter",
         "units": "#",
-        "description": "Stability parameter",
+        "description": "Monin-Obukhov Stability parameter",
     },
     "bowen_ratio": {
         "long_name": "Bowen ratio",
@@ -889,18 +889,22 @@ var_metadata = {
 
 def get_file_metadata(root_dir, dt):
     metadata = extract_metadata_from_raw(root_dir, dt)
-
     metadata.update({
         'data_contact': 'Bhupendra Raut <braut@anl.gov>',
         'flux_contact': 'Sujan Pal <spal@anl.gov>',
-        'creator': 'CROCUS Measurement Strategy Team',
-        'project': 'Community Research on Climate and Urban Science (CROCUS) an Urban Integrated Field Laboratory',
-        'reference': '',
-        'data_policy': 'Open data, follows FAIR principals',
+        'source': 'CROCUS Measurement Strategy Team',
+        'project': 'Community Research on Climate and Urban Science (CROCUS) - an Urban Integrated Field Laboratory',
+        'reference': "Raut B; Pal S; Muradyan P; Tuftedal M; O'Brien J; Sullivan R; Grover M; Jackson R; Berkelhammer M; Collis S (2025): CROCUS Urban Fluxes of CO₂, H₂O, and Turbulence at University of Illinois Chicago. Community Research on Climate and Urban Science Urban Integrated Field Laboratory (CROCUS UIFL). doi:10.15485/2473253",
+        'data_policy': 'Open data, adheres to FAIR principles (Findable, Accessible, Interoperable, Reusable)',
         'institution': 'Argonne National Laboratory',
         'funding_source': 'U.S. DOE Office of Science, Biological and Environmental Research program',
-        'data_creation_date': datetime.now().strftime("%Y-%m-%d"),
+        'acknowledgment': 'We acknowledge the support from the U.S. Department of Energy Office of Science, under Contract  DE-AC02-06CH11357.',
+        'file_creation_date': datetime.now().strftime("%Y-%m-%d"),
+        'data_version': 'v1.0.0',
+        'file_version': '2024.10.23',
+        'doi': '10.15485/2473253',
     })
+
 
     return metadata
 
@@ -1029,16 +1033,17 @@ def extract_zip_files(root_dir, start_dt, end_dt, temp_csv_dir):
 
 
 def read_and_attach_headers(file_path, var_metadata):
-    # Read the CSV file skipping the first three rows and without headers
+    # Read the CSV file skipping the first three rows* and without headers*
+    # This may fail if we dont have all the files with same number of columns
     df = pd.read_csv(file_path, skiprows=[0, 1, 2], header=None)
 
     # Extract the variable names from the metadata dictionary
     headers = list(var_metadata.keys())
 
-    # Attach the headers to the DataFrame
+    # Attach the headers to the DF
     df.columns = headers
 
-    # Combine 'date' and 'time' columns into a single datetime column
+    # Combine 'date' and 'time' into a single datetime column
     df["time"] = pd.to_datetime(df["date"] + " " + df["time"])
 
     # Convert 'time' to seconds since 1970-01-01
@@ -1071,7 +1076,7 @@ def combine_csv_files(file_paths, var_metadata):
     # Concatenate all DataFrames along the rows
     combined_df = pd.concat(dataframes, ignore_index=True)
 
-    # Sort the DataFrame by 'time'
+    # Sort the DataFrame by 'time'. May not be need, but keep it.
     combined_df = combined_df.sort_values(by="time").reset_index(drop=True)
 
     logging.info(f"Combined DataFrame time range: {combined_df['time'].min()} to {combined_df['time'].max()}")

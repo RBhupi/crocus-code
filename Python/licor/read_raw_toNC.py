@@ -9,7 +9,6 @@ import argparse
 
 from datetime import datetime
 
-# Configure logging
 import logging
 logging.basicConfig(
     level=logging.INFO,
@@ -188,13 +187,17 @@ def attach_metadata(metadata):
     metadata.update({
         'data_contact': 'Bhupendra Raut <braut@anl.gov>',
         'flux_contact': 'Sujan Pal <spal@anl.gov>',
-        'creator': 'CROCUS Measurement Strategy Team',
-        'project': 'Community Research on Climate and Urban Science (CROCUS) an Urban Integrated Field Laboratory',
-        'reference': '',
-        'data_policy': 'Open data, follows FAIR principals',
+        'source': 'CROCUS Measurement Strategy Team',
+        'project': 'Community Research on Climate and Urban Science (CROCUS) - an Urban Integrated Field Laboratory',
+        'reference': "Pal S; Raut B; Muradyan P; Tuftedal M; O'Brien J; Sullivan R; Grover M; Jackson R; Berkelhammer M; Collis S (2025): CROCUS High-Frequency Measurements of CO₂, H₂O, Wind, and Temperature at University of Illinois Chicago. Community Research on Climate and Urban Science Urban Integrated Field Laboratory (CROCUS UIFL). doi:10.15485/2473255",
+        'data_policy': 'Open data, adheres to FAIR principles (Findable, Accessible, Interoperable, Reusable)',
         'institution': 'Argonne National Laboratory',
         'funding_source': 'U.S. DOE Office of Science, Biological and Environmental Research program',
-        'data_creation_date': datetime.now().strftime("%Y-%m-%d"),
+        'acknowledgment': 'We acknowledge the support from the U.S. Department of Energy Office of Science, under Contract DE-AC02-06CH11357.',
+        'file_creation_date': datetime.now().strftime("%Y-%m-%d"),
+        'data_version': 'v1.0.0',
+        'file_version': '2024.10.23',
+        'doi': '10.15485/2473255',
     })
 
     return metadata
