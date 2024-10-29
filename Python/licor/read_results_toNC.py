@@ -338,17 +338,17 @@ var_metadata = {
     "air_pressure": {
         "long_name": "air pressure",
         "units": "Pa",
-        "description": "Air pressure",
+        "description": "Mean pressure of ambient air",
     },
     "air_density": {
         "long_name": "air density",
         "units": "kg m-3",
-        "description": "Air density",
+        "description": "Density of ambient air",
     },
     "air_heat_capacity": {
         "long_name": "air heat capacity",
         "units": "J kg-1K-1",
-        "description": "Air heat capacity",
+        "description": "Specific heat at constant pressure of ambient air",
     },
     "air_molar_volume": {
         "long_name": "air molar volume",
@@ -358,7 +358,7 @@ var_metadata = {
     "ET": {
         "long_name": "evapotranspiration",
         "units": "mm hour-1",
-        "description": "Evapotranspiration",
+        "description": "Evapotranspiration Flux",
     },
     "water_vapor_density": {
         "long_name": "water vapor density",
@@ -378,7 +378,7 @@ var_metadata = {
     "specific_humidity": {
         "long_name": "specific humidity",
         "units": "kg kg-1",
-        "description": "Specific humidity",
+        "description": "Ambient specific humidity on a mass basis",
     },
     "RH": {
         "long_name": "relative humidity",
@@ -398,47 +398,47 @@ var_metadata = {
     "u_unrot": {
         "long_name": "unrotated u wind component",
         "units": "m s-1",
-        "description": "Unrotated u wind component",
+        "description": "Wind component along the u anemometer axis",
     },
     "v_unrot": {
         "long_name": "unrotated v wind component",
         "units": "m s-1",
-        "description": "Unrotated v wind component",
+        "description": "Wind component along the v anemometer axis",
     },
     "w_unrot": {
         "long_name": "unrotated w wind component",
         "units": "m s-1",
-        "description": "Unrotated w wind component",
+        "description": "Wind component along the w anemometer axis",
     },
     "u_rot": {
         "long_name": "rotated u wind component",
         "units": "m s-1",
-        "description": "Rotated u wind component",
+        "description": "Rotated u wind component (mean wind speed)",
     },
     "v_rot": {
         "long_name": "rotated v wind component",
         "units": "m s-1",
-        "description": "Rotated v wind component",
+        "description": "Rotated v wind component (should be zero)",
     },
     "w_rot": {
         "long_name": "rotated w wind component",
         "units": "m s-1",
-        "description": "Rotated w wind component",
+        "description": "Rotated w wind component (should be zero)",
     },
     "wind_speed": {
         "long_name": "wind speed",
         "units": "m s-1",
-        "description": "Wind speed",
+        "description": "Mean Wind speed",
     },
     "max_wind_speed": {
         "long_name": "maximum wind speed",
         "units": "m s-1",
-        "description": "Maximum wind speed",
+        "description": "Maximum instantaneous wind speed",
     },
     "wind_dir": {
         "long_name": "wind direction",
         "units": "deg from north",
-        "description": "Wind direction",
+        "description": "Direction from which the wind blows, with respect to Geographic or Magnetic north",
     },
     "yaw": {"long_name": "yaw", "units": "deg", "description": "Yaw"},
     "pitch": {"long_name": "pitch", "units": "deg", "description": "Pitch"},
@@ -470,13 +470,13 @@ var_metadata = {
         "description": "Temperature scale",
     },
     "model": {"long_name": "model", "units": "0=KJ/1=KM/2=HS", "description": "Model"},
-    "x_peak": {"long_name": "x peak", "units": "m", "description": "X peak"},
-    "x_offset": {"long_name": "x offset", "units": "m", "description": "X offset"},
-    "x_10%": {"long_name": "x 10%", "units": "m", "description": "X 10%"},
-    "x_30%": {"long_name": "x 30%", "units": "m", "description": "X 30%"},
-    "x_50%": {"long_name": "x 50%", "units": "m", "description": "X 50%"},
-    "x_70%": {"long_name": "x 70%", "units": "m", "description": "X 70%"},
-    "x_90%": {"long_name": "x 90%", "units": "m", "description": "X 90%"},
+    "x_peak": {"long_name": "x peak", "units": "m", "description": "Along-wind distance providing the highest (peak) contribution to turbulent fluxes"},
+    "x_offset": {"long_name": "x offset", "units": "m", "description": "Along-wind distance providing <1% contribution to turbulent fluxes"},
+    "x_10%": {"long_name": "x 10%", "units": "m", "description": "Along-wind distance providing 10% (cumulative) contribution to turbulent fluxes"},
+    "x_30%": {"long_name": "x 30%", "units": "m", "description": "Along-wind distance providing 30% (cumulative) contribution to turbulent fluxes"},
+    "x_50%": {"long_name": "x 50%", "units": "m", "description": "Along-wind distance providing 50% (cumulative) contribution to turbulent fluxes"},
+    "x_70%": {"long_name": "x 70%", "units": "m", "description": "Along-wind distance providing 70% (cumulative) contribution to turbulent fluxes"},
+    "x_90%": {"long_name": "x 90%", "units": "m", "description": "Along-wind distance providing 90% (cumulative) contribution to turbulent fluxes"},
     "un_Tau": {
         "long_name": "uncorrected momentum flux",
         "units": "kg m-1s-2",

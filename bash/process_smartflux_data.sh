@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# The script automates the daily processing of SmartFlux data from a waggle-dev-node
+# The script automates daily processing of SmartFlux data from a waggle-dev-node
 # to the CELS GCE server in directory `/nfs/gce/projects/crocus/CMS-FLX-001-UIC`. 
 # The log file is reset every time the script runs. We rsync the data and process till the day before, 
 # Also checks if NetCDF files for raw and results data already exist; if not, it processes them using
@@ -19,7 +19,7 @@ FILE_PREFIX="crocus-uic-smartflux"
 
 > $LOG_FILE
 
-# Start SSH agent and add the key if required
+# Start SSH agent and add the key. thi is  not used.
 # eval $(ssh-agent -s)
 # ssh-add ~/.ssh/id_rsa
 
@@ -44,7 +44,7 @@ while [[ "$CURRENT_DATE" < "$END_DATE" || "$CURRENT_DATE" == "$END_DATE" ]]; do
     RAW_NC_FILE="$NC_DIR/rawnc/$YEAR_MONTH/$FILE_PREFIX-raw-$(date -j -f "%Y-%m-%dT%H:%M:%S" "$END_DATETIME" +"%Y%m%dT%H%M%S").nc"
     RESULTS_NC_FILE="$NC_DIR/resnc/$YEAR_MONTH/$FILE_PREFIX-results-$(date -j -f "%Y-%m-%dT%H:%M:%S" "$END_DATETIME" +"%Y%m%dT%H%M%S").nc"
 
-    # Process raw data if the file does not already exist
+    # Process raw data if the file not already exist
     if [ ! -f "$RAW_NC_FILE" ]; then
         echo "[$(date +"%Y-%m-%d %H:%M:%S")] Processing raw data for $CURRENT_DATE..." | tee -a $LOG_FILE
         python $RAW_PROCESS_SCRIPT --start $START_DATETIME --end $END_DATETIME --root_dir $ROOT_DIR >> $LOG_FILE 2>&1
