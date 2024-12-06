@@ -894,14 +894,14 @@ def get_file_metadata(root_dir, dt):
         'flux_contact': 'Sujan Pal <spal@anl.gov>',
         'source': 'CROCUS Measurement Strategy Team',
         'project': 'Community Research on Climate and Urban Science (CROCUS) - an Urban Integrated Field Laboratory',
-        'reference': "Raut B; Pal S; Muradyan P; Tuftedal M; O'Brien J; Sullivan R; Grover M; Jackson R; Berkelhammer M; Collis S (2025): CROCUS Urban Fluxes of CO₂, H₂O, and Turbulence at University of Illinois Chicago. Community Research on Climate and Urban Science Urban Integrated Field Laboratory (CROCUS UIFL). doi:10.15485/2473253",
+        'reference': "Raut B; Pal S; Muradyan P; Tuftedal M; O'Brien J; Sullivan R; Grover M; Jackson R; Berkelhammer M; Collis S (2024): CROCUS Urban Fluxes of CO₂, H₂O, and Turbulence at University of Illinois Chicago. Community Research on Climate and Urban Science Urban Integrated Field Laboratory (CROCUS UIFL). doi:10.15485/2473253",
         'data_policy': 'Open data, adheres to FAIR principles (Findable, Accessible, Interoperable, Reusable)',
         'institution': 'Argonne National Laboratory',
         'funding_source': 'U.S. DOE Office of Science, Biological and Environmental Research program',
-        'acknowledgment': 'We acknowledge the support from the U.S. Department of Energy Office of Science, under Contract  DE-AC02-06CH11357.',
+        'acknowledgment': 'This material is based upon work supported by the U.S. Department of Energy, Office of Science, Office of Biological and Environmental Research’s Urban Integrated Field Laboratories CROCUS project research activity, under Contract Number DE-AC02-06CH11357 and Award Number DE-SC0023226.',
         'file_creation_date': datetime.now().strftime("%Y-%m-%d"),
         'data_version': 'v1.0.0',
-        'file_version': '2024.10.23',
+        'file_version': '2024.11.04',
         'doi': '10.15485/2473253',
     })
 
