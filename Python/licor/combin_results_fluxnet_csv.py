@@ -67,6 +67,8 @@ def combine_csv_files(file_paths):
 def process_files(args, start_datetime, end_datetime):
     """Main processing function."""
     temp_csv_dir = os.path.join(args.root_dir, "temp", "csv")
+    # delete and remake again
+    #shutil.rmtree(temp_csv_dir)
     os.makedirs(temp_csv_dir, exist_ok=True)
 
     extract_zip_files(args.root_dir, start_datetime, end_datetime, temp_csv_dir)
@@ -90,6 +92,7 @@ def process_files(args, start_datetime, end_datetime):
 
     combined_df.dropna(axis=1, how='all').to_csv(out_filepath, index=False)
     logging.info(f"Saved combined data to {out_filepath}")
+    shutil.rmtree(temp_csv_dir)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process raw data files for a given time range.")
