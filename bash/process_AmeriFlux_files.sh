@@ -7,9 +7,9 @@
 # and ensures that files are processed correctly, even if timestamps vary.
 
 ROOT_DIR="/Users/bhupendra/projects/crocus/data/flux_data/data"
-LOG_FILE="$ROOT_DIR/daily_flux_processing.log"
+LOG_FILE="$ROOT_DIR/ameriflux_processing.log"
 FP_DIR="$ROOT_DIR/AmeriFlux"
-FLUX_PROCESS_SCRIPT="/Users/bhupendra/projects/crocus/code/Python/licor/combin_results_fluxnet_csv.py"
+FLUX_PROCESS_SCRIPT="/Users/bhupendra/projects/crocus/code/Python/licor/ameriflux_data_processing.py"
 FP_PREFIX="US-CU1_HH"
 
 > $LOG_FILE
@@ -32,7 +32,7 @@ while [[ "$CURRENT_DATE" < "$END_DATE" || "$CURRENT_DATE" == "$END_DATE" ]]; do
     DATE_ONLY=$(date -j -f "%Y-%m-%dT%H:%M:%S" "$START_DATETIME" +"%Y%m%d")
 
     # Check if any file exists for the given date in the filename
-    FLUX_CSV_FILE=$(ls $FP_DIR/$YEAR_MONTH/${FP_PREFIX}_*${DATE_ONLY}*.csv 2>/dev/null | head -n 1)
+    FLUX_CSV_FILE=$(ls $FP_DIR/${FP_PREFIX}_${DATE_ONLY}*.csv 2>/dev/null | head -n 1)
 
     # Process flux data if no file exists for the given date
     if [ -z "$FLUX_CSV_FILE" ]; then
@@ -40,7 +40,7 @@ while [[ "$CURRENT_DATE" < "$END_DATE" || "$CURRENT_DATE" == "$END_DATE" ]]; do
         python $FLUX_PROCESS_SCRIPT --start $START_DATETIME --end $END_DATETIME --root_dir $ROOT_DIR --prefix $FP_PREFIX >> $LOG_FILE 2>&1
 
         # Check again after processing
-        FLUX_CSV_FILE=$(ls $FP_DIR/$YEAR_MONTH/${FP_PREFIX}_*${DATE_ONLY}*.csv 2>/dev/null | head -n 1)
+        FLUX_CSV_FILE=$(ls $FP_DIR/${FP_PREFIX}_${DATE_ONLY}*.csv 2>/dev/null | head -n 1)
 
         if [ -z "$FLUX_CSV_FILE" ]; then
             echo "[$(date +"%Y-%m-%d %H:%M:%S")] ERROR: Flux data processing failed for $CURRENT_DATE!" | tee -a $LOG_FILE
@@ -53,6 +53,5 @@ while [[ "$CURRENT_DATE" < "$END_DATE" || "$CURRENT_DATE" == "$END_DATE" ]]; do
 
     CURRENT_DATE=$(date -j -v+1d -f "%Y-%m-%d" "$CURRENT_DATE" +"%Y-%m-%d")
 done
-
 
 echo "[$(date +"%Y-%m-%d %H:%M:%S")] Done! Check the log file for details: $LOG_FILE" | tee -a $LOG_FILE
