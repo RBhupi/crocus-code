@@ -21,6 +21,21 @@ logging.basicConfig(
     ],
 )
 
+## These are the variables that are in the full_output files, but not in fluxnet files.
+## We need to add these to the final output file. Be careful with adding these variables.
+## not using this dictionery for now as this cann't be automated due to the units issues.
+# TODO: use this dictionery to add new variables to the final output file.
+amer_var_full = {
+    "datetime": "datetime",
+    "air_pressure": "PA",
+    "air_temperature": "TA",
+    "RH": "RH",
+    "co2_strg": "SC",
+    "H_strg": "SH",
+    "LE_strg": "SLE",
+    "VPD": "VPD",
+}
+
 
 def extract_zip_files(root_dir, start_dt, end_dt, temp_csv_dir):
     """Extracts all .zip files within a given date and time range."""
@@ -73,6 +88,11 @@ def combine_csv_files(file_paths):
 
 
 
+# This is highly sensitive function, we need to be very careful while adding new variables.
+# We need to make sure that the units are correct and that the variables are not all missing.
+# This can be avoided by applying clean_df function at the last step. 
+# TODO: use clean_df function at the end.
+
 def combine_full_output_files(file_paths):
     """Combines multiple full output files into one DataFrame."""
     dataframes = []
@@ -96,17 +116,23 @@ def combine_full_output_files(file_paths):
     # Sort by datetime
     #combined_df = combined_df.sort_values(by="datetime").reset_index(drop=True)
 
-    # Select only the required columns
-    combined_df = combined_df[["datetime", "air_pressure", "air_temperature", "RH"]]
-    combined_df["PA"] = combined_df["air_pressure"] / 1000  # Convert to kPa
-    combined_df["TA"] = combined_df["air_temperature"] - 273.15  # Convert to Celsius
+    # Select only the required columns change units, we are creatung new columns here
+    combined_df = combined_df[["datetime", "air_pressure", "air_temperature", "RH", "VPD"]]
+    
+    combined_df["PA"] = combined_df["air_pressure"] / 1000  # convert to kPa
+    combined_df["TA"] = combined_df["air_temperature"] - 273.15 #   convert to deg C
+    combined_df["VPD"] = combined_df["VPD"] /100 # convert to hPa
+    combined_df["RH"] = combined_df["RH"]
+
 
     # Format 'PA', 'TA', and 'RH' to 3 decimal places
     combined_df["PA"] = combined_df["PA"].round(3)
     combined_df["TA"] = combined_df["TA"].round(3)
     combined_df["RH"] = combined_df["RH"].round(3)
+    combined_df["VPD"] = combined_df["VPD"].round(3)
 
     combined_df = combined_df.sort_values(by="datetime")
+    print(combined_df.head())
     
     # Set datetime as index
     #combined_df.set_index('datetime', inplace=True)
@@ -115,8 +141,6 @@ def combine_full_output_files(file_paths):
     df_cleaned = clean_df(combined_df)
 
     return df_cleaned
-
-
 
 def add_full_vars_to_df(temp_csv_dir, combined_df):
     # this is for full_output files because we need more variables.
@@ -131,7 +155,7 @@ def add_full_vars_to_df(temp_csv_dir, combined_df):
 
     full_df_filtered = combine_full_output_files(full_files)
     print(full_df_filtered.head())
-    combined_df[["PA", "TA", "RH"]] = full_df_filtered[["PA", "TA", "RH"]]
+    combined_df[["PA", "TA", "RH", "VPD"]] = full_df_filtered[["PA", "TA", "RH", "VPD"]]
     print(combined_df.head())
     return combined_df
 
