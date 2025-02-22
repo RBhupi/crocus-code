@@ -21,6 +21,21 @@ logging.basicConfig(
     ],
 )
 
+## These are the variables that are in the full_output files, but not in fluxnet files.
+## We need to add these to the final output file. Be careful with adding these variables.
+## not using this dictionery for now as this cann't be automated due to the units issues.
+# TODO: use this dictionery to add new variables to the final output file.
+amer_var_full = {
+    "datetime": "datetime",
+    "air_pressure": "PA",
+    "air_temperature": "TA",
+    "RH": "RH",
+    "co2_strg": "SC",
+    "H_strg": "SH",
+    "LE_strg": "SLE",
+    "VPD": "VPD",
+}
+
 
 def extract_zip_files(root_dir, start_dt, end_dt, temp_csv_dir):
     """Extracts all .zip files within a given date and time range."""
@@ -70,6 +85,79 @@ def combine_csv_files(file_paths):
     df_cleaned = clean_df(combined_df)
     df_cleaned = df_cleaned.sort_values(by="TIMESTAMP_START")
     return df_cleaned
+
+
+
+# This is highly sensitive function, we need to be very careful while adding new variables.
+# We need to make sure that the units are correct and that the variables are not all missing.
+# This can be avoided by applying clean_df function at the last step. 
+# TODO: use clean_df function at the end.
+
+def combine_full_output_files(file_paths):
+    """Combines multiple full output files into one DataFrame."""
+    dataframes = []
+
+    for file_path in file_paths:
+        df = pd.read_csv(file_path, skiprows=[0, 2])
+        df["filename"] = file_path  # Store filename for datetime extraction
+        dataframes.append(df)
+
+    combined_df = pd.concat(dataframes, ignore_index=True)
+
+    # Extract datetime from filename
+    dt_extracted = combined_df['filename'].str.extract(r'(\d{4}-\d{2}-\d{2})T(\d{2})(\d{2})(\d{2})')
+
+    # Combine extracted parts into a proper datetime string
+    combined_df['datetime'] = pd.to_datetime(
+        dt_extracted[0] + ' ' + dt_extracted[1] + ':' + dt_extracted[2] + ':' + dt_extracted[3], 
+        format='%Y-%m-%d %H:%M:%S', errors='coerce'
+    )
+
+    # Sort by datetime
+    #combined_df = combined_df.sort_values(by="datetime").reset_index(drop=True)
+
+    # Select only the required columns change units, we are creatung new columns here
+    combined_df = combined_df[["datetime", "air_pressure", "air_temperature", "RH", "VPD"]]
+    
+    combined_df["PA"] = combined_df["air_pressure"] / 1000  # convert to kPa
+    combined_df["TA"] = combined_df["air_temperature"] - 273.15 #   convert to deg C
+    combined_df["VPD"] = combined_df["VPD"] /100 # convert to hPa
+    combined_df["RH"] = combined_df["RH"]
+
+
+    # Format 'PA', 'TA', and 'RH' to 3 decimal places
+    combined_df["PA"] = combined_df["PA"].round(3)
+    combined_df["TA"] = combined_df["TA"].round(3)
+    combined_df["RH"] = combined_df["RH"].round(3)
+    combined_df["VPD"] = combined_df["VPD"].round(3)
+
+    combined_df = combined_df.sort_values(by="datetime")
+    print(combined_df.head())
+    
+    # Set datetime as index
+    #combined_df.set_index('datetime', inplace=True)
+    
+    # Clean DataFrame (Assuming `clean_df` is a defined function)
+    df_cleaned = clean_df(combined_df)
+
+    return df_cleaned
+
+def add_full_vars_to_df(temp_csv_dir, combined_df):
+    # this is for full_output files because we need more variables.
+    full_files = glob.glob(
+        os.path.join(temp_csv_dir, "output", "eddypro_exp_full_output_*_exp.csv")
+    )
+    full_files.sort()
+
+    if not full_files:
+        logging.error("No full_output files found for the given date range.")
+        return
+
+    full_df_filtered = combine_full_output_files(full_files)
+    print(full_df_filtered.head())
+    combined_df[["PA", "TA", "RH", "VPD"]] = full_df_filtered[["PA", "TA", "RH", "VPD"]]
+    print(combined_df.head())
+    return combined_df
 
 
 def clean_df(df):
@@ -143,12 +231,16 @@ def process_files(args, start_datetime, end_datetime):
     csv_files = glob.glob(
         os.path.join(temp_csv_dir, "output", "eddypro_exp_fluxnet*_exp.csv")
     )
+    csv_files.sort()
+ 
+
     if not csv_files:
         logging.error("No CSV files found for the given date range.")
         return
 
     combined_df = combine_csv_files(csv_files)
-
+    combined_df = add_full_vars_to_df(temp_csv_dir, combined_df)
+    
     #year_month_str = end_datetime.strftime("%Y%m")
     ts_start = combined_df["TIMESTAMP_START"].min()
     ts_end = combined_df["TIMESTAMP_END"].max()
@@ -172,14 +264,16 @@ if __name__ == "__main__":
         "--start",
         dest="start",
         type=str,
-        required=True,
+        #required=True,
+        default="2024-08-01T00:00:00",
         help="Start date and time in the format YYYY-MM-DDTHH:MM:SS, e.g., 2024-08-01T00:00:00.",
     )
     parser.add_argument(
         "--end",
         dest="end",
         type=str,
-        required=True,
+        #required=True,
+        default="2024-08-01T23:59:59",
         help="End date and time in the format YYYY-MM-DDTHH:MM:SS, e.g., 2024-08-01T23:59:59.",
     )
     parser.add_argument(
