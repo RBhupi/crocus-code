@@ -73,7 +73,7 @@ It will be saved to:
 /nfs/gce/projects/crocus/data/foraged-data/cl61_files/W09A-ATMOS/netcdf/raw/202505/20250509/
 ```
 
-### test-run or dry-run
+### Step 4. test-run or dry-run
 
 ```
 python crocus_file_curator.py \
@@ -86,7 +86,7 @@ python crocus_file_curator.py \
 ```
 
 
-### Run the script
+### Step 5. Run the script
 ```
 python crocus_file_curator.py \
   --config download_jobs.yaml \
