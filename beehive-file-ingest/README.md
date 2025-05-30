@@ -39,7 +39,10 @@ password: your_waggle_password
 ***REMOVED***
     subfolder: netcdf/raw
 ***REMOVED***
+    waggle_filename_timestamp: true
 ```
+Beehive filenames include a numeric timestamp prefix like `1718744500000000000-`.
+If waggle_filename_timestamp is set to false, this prefix will be removed before saving the file.
 
 ### Step 2: Understand How Each Field Affects Output
 | YAML Field      | Description                                                               |
@@ -47,11 +50,13 @@ password: your_waggle_password
 | `upload_name`   | Matches the plugin name (e.g., `cl61_files`) used in Beehive              |
 | `vsn`           | Node ID that produced the data (e.g., `W09A`)                             |
 | `start_date`    | Start of query window (format: `"YYYY-MM-DD"`)                            |
-| `end_date`      | End of query window                                                       |
+| `end_date`      | End of query window. If omitted, defaults to today (UTC)                                                        |
 | `date_pattern`  | Regex pattern to extract date (`YYYYMMDD`) from filename                  |
 | `extension`     | File type to filter (e.g., `nc`, `txt`, `zip`)                            |
 | `subfolder`     | Optional mid-path between node-site and date folders (e.g., `netcdf/raw`) |
 | `group_by_date` | If true, organizes files under `/YYYYMM/YYYYMMDD/` directories            |
+| `waggle_filename_timestamp` | If false, strips `1718744500000000000-` from filenames before saving |
+
 
 
 ### Step 3: Folder Structure

@@ -5,8 +5,10 @@ import argparse
 import datetime
 import pandas as pd
 import sage_data_client
-from typing import Optional
+from typing import Optional, Callable
 from beehive_file_fetcher import download_beehive_files
+import re
+from datetime import timezone
 
 
 # ========== Logging Setup ==========
@@ -48,7 +50,132 @@ def date_range_loop(start: str, end: str) -> list:
     return ranges
 
 
-# ========== Main Job Executor ==========
+def _extract_date_from_filename(filename: str, date_regex: str, date_format: str) -> Optional[datetime]:
+    """
+    Extracts a date from the filename using regex and the provided datetime format.
+
+    Parameters:
+        filename (str): The filename to extract the date from.
+        date_regex (str): The regex pattern to locate the date string.
+        date_format (str): The datetime format string (e.g., '%Y-%m-%dT%H%M%S').
+
+    Returns:
+        datetime: The extracted date as a datetime object, or None if parsing fails.
+    """
+    try:
+        # Search for the date string in the filename using the provided regex
+        match = re.search(date_regex, filename)
+        if not match:
+            logging.warning(f"[WARN] No date found in filename: {filename}")
+            return None
+        
+        date_str = match.group(0)
+        
+        # Parse the date string using the provided format
+        return datetime.datetime.strptime(date_str, date_format)
+    except (ValueError, IndexError) as e:
+        logging.error(f"[ERROR] Failed to parse date from filename '{filename}': {e}")
+        return None
+
+
+def _create_dated_folder(base_path: str, date: datetime) -> str:
+    """
+    Constructs a nested directory path based on a datetime object.
+
+    Example: If base_path='/data' and date is 2024-07-01,
+    returns '/data/2024/07/01'
+    """
+    year = date.strftime("%Y")
+    month = date.strftime("%m")
+    day = date.strftime("%d")
+    return os.path.join(base_path, year, month, day)
+
+
+def parse_job_settings(job):
+    end_date = job.get("end_date") or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+
+    extension = job.get("extension", [])
+    if isinstance(extension, str):
+        extension = [extension]
+    if not extension:
+        extension = None
+
+    rename_function = None
+    if not job.get("waggle_filename_timestamp", True):
+        rename_function = lambda filename: re.sub(r"^\d+-", "", filename)
+
+    return {
+        "job_name": job["job"],
+        "upload_name": job["upload_name"],
+        "vsn": job["vsn"],
+        "start_date": job["start_date"],
+        "end_date": end_date,
+        "date_regex": job.get("date_regex"),
+        "date_format": job.get("date_format"),
+        "extension": extension,
+        "group_by_date": job.get("group_by_date", True),
+        "keep_original_path": job.get("keep_original_path", False),
+        "mount_dir": job.get("mount_dir", "/data"),
+        "subfolder": job.get("subfolder", ""),
+        "rename_function": rename_function
+    }
+
+
+
+### run jobs
+def build_output_base(root_dir, upload_name, vsn, site, subfolder):
+    site = site or "UNKNOWN"
+    vsn_site_path = f"{vsn}-{site}"
+    return os.path.join(root_dir, upload_name, vsn_site_path, subfolder)
+
+
+def resolve_output_path(row, base, date, settings):
+    if settings["keep_original_path"]:
+        try:
+            orig_path = row["meta.original_path"]
+            if not orig_path.startswith(settings["mount_dir"]):
+                raise ValueError(f"original_path '{orig_path}' does not start with mount_dir '{settings['mount_dir']}'")
+            rel_path = orig_path[len(settings["mount_dir"]):].lstrip("/")
+            return os.path.join(base, os.path.dirname(rel_path))
+        except Exception as e:
+            logging.error(f"[ERROR] Cannot construct output path from original_path: {e}")
+            return None
+    else:
+        if settings["group_by_date"]:
+            return _create_dated_folder(base, date)
+        return base
+
+
+def process_site_data(df_site, site, settings, root_dir, dry_run, test_run, username, password):
+    output_base = build_output_base(root_dir, settings["upload_name"], settings["vsn"], site, settings["subfolder"])
+    if test_run:
+        df_site = df_site.head(1)
+
+    for _, row in df_site.iterrows():
+        filename = row['value']
+        date = _extract_date_from_filename(filename, settings["date_regex"], settings["date_format"])
+        if date is None:
+            continue
+
+        output_dir = resolve_output_path(row, output_base, date, settings)
+        if output_dir is None:
+            continue
+
+        logging.info(f"[SAVE] → {output_dir}")
+
+        download_beehive_files(
+            dataframe=pd.DataFrame([row]),
+            destination=output_dir,
+            username=username,
+            password=password,
+            extension_filter=settings["extension"],
+            group_by_date=False,  # already handled
+            date_regex=settings["date_regex"],
+            dry_run=dry_run,
+            rename_function=settings["rename_function"]
+        )
+
+
 def run_download_jobs(config, root_dir, dry_run: bool, selected_job: Optional[str] = None, test_run: bool = False):
     username = config.get("username")
     password = config.get("password")
@@ -59,24 +186,16 @@ def run_download_jobs(config, root_dir, dry_run: bool, selected_job: Optional[st
         return
 
     for job in ***REMOVED***
-        job_name = job.get("job")
-        if selected_job and job_name != selected_job:
-            continue  # Skip others if --job is set
+        settings = parse_job_settings(job)
+        if selected_job and settings["job_name"] != selected_job:
+            continue
 
-        upload_name = job["upload_name"]
-        vsn = job["vsn"]
-        start_date = job["start_date"]
-        end_date = job["end_date"]
-        date_pattern = job["date_pattern"]
-        extension = job.get("extension", "nc")
-        group_by_date = job.get("group_by_date", True)
+        logging.info(f"[JOB START] {settings['job_name']} | VSN={settings['vsn']} | Upload={settings['upload_name']}")
 
-        logging.info(f"[JOB START] {job_name} | VSN={vsn} | Upload={upload_name}")
-
-        for start, end in date_range_loop(start_date, end_date):
+        for start, end in date_range_loop(settings["start_date"], settings["end_date"]):
             query_filter = {
-                "vsn": vsn,
-                "upload_name": upload_name
+                "vsn": settings["vsn"],
+                "upload_name": settings["upload_name"]
             }
 
             logging.debug(f"[QUERY] {query_filter} | {start} to {end}")
@@ -87,7 +206,7 @@ def run_download_jobs(config, root_dir, dry_run: bool, selected_job: Optional[st
                 continue
 
             if df.empty:
-                logging.info(f"[SKIP] No data found for VSN={vsn} from {start} to {end}")
+                logging.info(f"[SKIP] No data found for VSN={settings['vsn']} from {start} to {end}")
                 continue
 
             if "meta.site" not in df.columns or "meta.sensor" not in df.columns:
@@ -96,34 +215,7 @@ def run_download_jobs(config, root_dir, dry_run: bool, selected_job: Optional[st
 
             for site in df["meta.site"].dropna().unique():
                 df_site = df[df["meta.site"] == site]
-                sensor = df_site["meta.sensor"].iloc[0]
-
-                subfolder = job.get("subfolder", "")  # NEW
-
-                output_dir = os.path.join(
-                    root_dir,
-                    upload_name,
-                    f"{vsn}-{site}",
-                    *subfolder.strip("/").split("/") if subfolder else []
-                )
-
-
-                logging.info(f"[SAVE] {len(df_site)} entries to {output_dir}")
-
-                if test_run:
-                    df_site = df_site.head(1)
-                    logging.debug(f"[TEST-RUN] Limited to 1 file: {df_site['value'].iloc[0]}")
-
-                download_beehive_files(
-                    dataframe=df_site,
-                    destination=output_dir,
-                    username=username,
-                    password=password,
-                    extension_filter=extension,
-                    group_by_date=group_by_date,
-                    date_regex=date_pattern,
-                    dry_run=dry_run
-                )
+                process_site_data(df_site, site, settings, root_dir, dry_run, test_run, username, password)
 
 
 # ========== CLI Interface ==========
@@ -147,7 +239,7 @@ def main():
     if not config:
         return
 
-    log_time = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    log_time = datetime.datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     log_path = os.path.join(args.root_dir, "logs", f"log_{log_time}.log")
     setup_logging(log_path, args.debug)
 
@@ -162,3 +254,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+

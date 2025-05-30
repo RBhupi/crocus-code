@@ -15,7 +15,7 @@ def download_beehive_files(
     destination: str,
     username: str,
     password: str,
-    extension_filter: Optional[str] = None,
+    extension_filter: Optional[list[str]]= None,
     group_by_date: bool = True,
     skip_if_exists: bool = True,
     rename_function: Optional[Callable[[str], str]] = None,
@@ -32,7 +32,7 @@ def download_beehive_files(
         destination (str): Root directory for saving downloaded files.
         username (str): Beehive (Waggle) authorized username.
         password (str): Beehive (Waggle) authorized password.
-        extension_filter (str, optional): File extension to include (e.g., 'nc').
+        extension_filter (List[str], optional): List of file extensions to include (e.g., ['nc', 'txt']).
         group_by_date (bool): Whether to store files in subfolders like /YYYYMM/YYYYMMDD/.
         skip_if_exists (bool): If True, skips downloading files already present.
         rename_function (Callable, optional): Function to rename files before saving.
@@ -47,7 +47,7 @@ def download_beehive_files(
 
     urls = dataframe["value"]
     if extension_filter:
-        urls = urls[urls.str.endswith(extension_filter)]
+        urls = urls[urls.apply(lambda url: any(url.endswith(ext) for ext in extension_filter))]
     urls = urls.unique()
 
     extract_date = _compile_date_extractor(date_regex) if group_by_date else None
@@ -98,7 +98,7 @@ def _compile_date_extractor(pattern: str) -> Callable[[str], Optional[str]]:
 
     def extract(filename: str) -> Optional[str]:
         match = compiled.search(filename)
-        return match.group(1) if match else None
+        return match.group(0) if match else None
 
     return extract
 
@@ -159,3 +159,4 @@ def _fetch_and_save_file(url: str, filepath: str, username: str, password: str) 
 #     group_by_date=True,
 #     date_regex=r"_(\d{8})_\d{6}"
 # )
+
