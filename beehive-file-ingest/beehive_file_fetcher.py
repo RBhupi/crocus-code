@@ -68,7 +68,8 @@ def download_beehive_files(
         else:
             target_folder = destination
 
-        os.makedirs(target_folder, exist_ok=True)
+        original_filename = os.path.basename(url)
+        filename = rename_function(original_filename) if rename_function else original_filename
         target_path = os.path.join(target_folder, filename)
 
         if skip_if_exists and os.path.exists(target_path):
