@@ -5,8 +5,10 @@ import argparse
 import datetime
 import pandas as pd
 import sage_data_client
-from typing import Optional
+from typing import Optional, Callable
 from beehive_file_fetcher import download_beehive_files
+import re
+from datetime import timezone
 
 
 # ========== Logging Setup ==========
@@ -48,6 +50,47 @@ def date_range_loop(start: str, end: str) -> list:
     return ranges
 
 
+def _extract_date_from_filename(filename: str, date_regex: str, date_format: str) -> Optional[datetime]:
+    """
+    Extracts a date from the filename using regex and the provided datetime format.
+
+    Parameters:
+        filename (str): The filename to extract the date from.
+        date_regex (str): The regex pattern to locate the date string.
+        date_format (str): The datetime format string (e.g., '%Y-%m-%dT%H%M%S').
+
+    Returns:
+        datetime: The extracted date as a datetime object, or None if parsing fails.
+    """
+    try:
+        # Search for the date string in the filename using the provided regex
+        match = re.search(date_regex, filename)
+        if not match:
+            logging.warning(f"[WARN] No date found in filename: {filename}")
+            return None
+        
+        date_str = match.group(0)
+        
+        # Parse the date string using the provided format
+        return datetime.datetime.strptime(date_str, date_format)
+    except (ValueError, IndexError) as e:
+        logging.error(f"[ERROR] Failed to parse date from filename '{filename}': {e}")
+        return None
+
+
+def _create_dated_folder(base_path: str, date: datetime) -> str:
+    """
+    Constructs a nested directory path based on a datetime object.
+
+    Example: If base_path='/data' and date is 2024-07-01,
+    returns '/data/2024/07/01'
+    """
+    year = date.strftime("%Y")
+    month = date.strftime("%m")
+    day = date.strftime("%d")
+    return os.path.join(base_path, year, month, day)
+
+
 # ========== Main Job Executor ==========
 def run_download_jobs(config, root_dir, dry_run: bool, selected_job: Optional[str] = None, test_run: bool = False):
     username = config.get("username")
@@ -67,9 +110,22 @@ def run_download_jobs(config, root_dir, dry_run: bool, selected_job: Optional[st
         vsn = job["vsn"]
         start_date = job["start_date"]
         end_date = job["end_date"]
-        date_pattern = job["date_pattern"]
-        extension = job.get("extension", "nc")
+        date_regex = job.get("date_regex")
+        date_format = job.get("date_format")
+        extension = job.get("extension", [])  # Default to an empty list if no extensions are provided
+
+        # Check if extension is a string and convert it to a list
+        if isinstance(extension, str):
+            extension = [extension]
+
+        # If no extension is specified, set to None to indicate all files should be downloaded
+        if not extension:
+            extension = None
+
         group_by_date = job.get("group_by_date", True)
+        keep_original_path = job.get("keep_original_path", False)
+        mount_dir = job.get("mount_dir", "/data")
+
 
         logging.info(f"[JOB START] {job_name} | VSN={vsn} | Upload={upload_name}")
 
@@ -100,15 +156,35 @@ def run_download_jobs(config, root_dir, dry_run: bool, selected_job: Optional[st
 
                 subfolder = job.get("subfolder", "")  # NEW
 
-                output_dir = os.path.join(
-                    root_dir,
-                    upload_name,
-                    f"{vsn}-{site}",
-                    *subfolder.strip("/").split("/") if subfolder else []
-                )
+                # Use the extracted date for directory creation
+                for _, row in df_site.iterrows():
+                    filename = row['value']  # Assuming 'value' column contains the filename
+                    date = _extract_date_from_filename(filename, date_regex, date_format)
+                    if date is None:
+                        continue
 
+                    output_dir = _create_dated_folder(root_dir, date)
 
-                logging.info(f"[SAVE] {len(df_site)} entries to {output_dir}")
+                if keep_original_path:
+                    try:
+                        orig_path = df_site["meta.original_path"].iloc[0]
+
+                        if not orig_path.startswith(mount_dir):
+                            raise ValueError(f"original_path '{orig_path}' does not start with mount_dir '{mount_dir}'")
+
+                        rel_path = orig_path[len(mount_dir):].lstrip("/")  # removes mount_dir prefix
+                        output_dir = os.path.join(root_dir, os.path.dirname(rel_path))
+
+                        logging.debug(f"[PATH OVERRIDE] Using original_path: {orig_path} → {output_dir}")
+
+                    except Exception as e:
+                        logging.error(f"[ERROR] Cannot construct output path from original_path: {e}")
+                        raise  # force failure
+
+                if keep_original_path:
+                    logging.debug(f"[PATH OVERRIDE] Using original_path structure for save location.")
+                else:
+                    logging.info(f"[SAVE] {len(df_site)} entries to {output_dir}")
 
                 if test_run:
                     df_site = df_site.head(1)
@@ -121,7 +197,7 @@ def run_download_jobs(config, root_dir, dry_run: bool, selected_job: Optional[st
                     password=password,
                     extension_filter=extension,
                     group_by_date=group_by_date,
-                    date_regex=date_pattern,
+                    date_regex=date_regex,
                     dry_run=dry_run
                 )
 
@@ -147,7 +223,7 @@ def main():
     if not config:
         return
 
-    log_time = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    log_time = datetime.datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     log_path = os.path.join(args.root_dir, "logs", f"log_{log_time}.log")
     setup_logging(log_path, args.debug)
 
