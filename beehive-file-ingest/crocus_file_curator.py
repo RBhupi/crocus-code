@@ -161,7 +161,7 @@ def process_site_data(df_site, site, settings, root_dir, dry_run, test_run, user
         if output_dir is None:
             continue
 
-        logging.info(f"[SAVE] → {output_dir}")
+        logging.info(f"[CHECK] → {output_dir}")
 
         download_beehive_files(
             dataframe=pd.DataFrame([row]),

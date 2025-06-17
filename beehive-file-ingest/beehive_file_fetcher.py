@@ -116,10 +116,8 @@ def _create_dated_folder(base_path: str, date_str: str) -> str:
 
 
 def _fetch_and_save_file(url: str, filepath: str, username: str, password: str) -> bool:
-    """
-    Downloads a file from a given URL using basic auth and saves it to disk.
-    """
     try:
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)  
         response = requests.get(url, auth=(username, password), timeout=30)
         if response.status_code == 200:
             with open(filepath, "wb") as f:
@@ -132,6 +130,7 @@ def _fetch_and_save_file(url: str, filepath: str, username: str, password: str) 
     except Exception as e:
         logging.info(f"[ERROR] Exception downloading {url}: {e}")
     return False
+
 
 
 
@@ -160,4 +159,5 @@ def _fetch_and_save_file(url: str, filepath: str, username: str, password: str) 
 #     group_by_date=True,
 #     date_regex=r"_(\d{8})_\d{6}"
 # )
+
 
