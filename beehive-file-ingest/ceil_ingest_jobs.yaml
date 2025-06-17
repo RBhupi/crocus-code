@@ -1,0 +1,76 @@
+***REMOVED***
+  - job: correct-cl61-w08d
+    subfolder: /nfs/gce/projects/crocus/data/cl61-files/W08D-NEIU
+***REMOVED***
+    #end_date: "2025-06-10"
+    output_dir: /nfs/gce/projects/crocus/data/ceil-daily/W08D-NEIU
+    output_prefix: crocus-neiu-ceil-a1-
+    attributes:
+      site_name: "W08D-NEIU"
+      altitude: ""
+      latitude: ""
+      longitude: ""
+      file_duration: "daily"
+      data_contact: "Bhupendra Raut <braut@anl.gov>"
+      Instrument_contact: "Paytsar Muradyan <pmuradyan@anl.gov>"
+      source: "CROCUS Measurement Strategy"
+      project: "Community Research on Climate and Urban Science (CROCUS) - an Urban Integrated Field Laboratory"
+      reference: ""
+      data_policy: "Open data, adheres to FAIR principles (Findable, Accessible, Interoperable, Reusable)"
+      institution: "Argonne National Laboratory"
+      funding_source: "U.S. DOE Office of Science, Biological and Environmental Research program"
+      acknowledgment: "This material is based upon work supported by the U.S. Department of Energy, Office of Science, Office of Biological and Environmental Research’s Urban Integrated Field Laboratories CROCUS project research activity, under Contract Number DE-AC02-06CH11357 and Award Number DE-SC0023226."
+      data_version: "v1.1.0"
+      file_version: ""
+      doi: ""
+
+  - job: correct-cl61-w09a
+    subfolder: /nfs/gce/projects/crocus/data/cl61_files/W09A-ATMOS
+    start_date: "2025-04-10"
+    #end_date: "2025-05-10"
+    output_dir: /nfs/gce/projects/crocus/data/ceil-daily/W09A-ATMOS
+    output_prefix: crocus-atmos-ceil-a1-
+    attributes:
+      site_name: "W09A-ATMOS"
+      altitude: ""
+      latitude: ""
+      longitude: ""
+      file_duration: "daily"
+      data_contact: "Bhupendra Raut <braut@anl.gov>"
+      Instrument_contact: "Paytsar Muradyan <pmuradyan@anl.gov>"
+      source: "CROCUS Measurement Strategy"
+      project: "Community Research on Climate and Urban Science (CROCUS) - an Urban Integrated Field Laboratory"
+      reference: ""
+      data_policy: "Open data, adheres to FAIR principles (Findable, Accessible, Interoperable, Reusable)"
+      institution: "Argonne National Laboratory"
+      funding_source: "U.S. DOE Office of Science, Biological and Environmental Research program"
+      acknowledgment: "This material is based upon work supported by the U.S. Department of Energy, Office of Science, Office of Biological and Environmental Research’s Urban Integrated Field Laboratories CROCUS project research activity, under Contract Number DE-AC02-06CH11357 and Award Number DE-SC0023226."
+      data_version: "v1.1.0"
+      file_version: ""
+      doi: ""
+
+  - job: correct-cl61-w08b
+    subfolder: /nfs/gce/projects/crocus/data/cl61-files/W08B-CCICS
+***REMOVED***
+    #end_date: "2025-05-10"
+    output_dir: /nfs/gce/projects/crocus/data/ceil-daily/W08B-CCICS
+    output_prefix: crocus-ccics-ceil-a1-
+    attributes:
+      site_name: "W08B-CCICS"
+      altitude: ""
+      latitude: ""
+      longitude: ""
+      file_duration: "daily"
+      contact_data: "Bhupendra Raut <braut@anl.gov>"
+      contact_instrument: "Paytsar Muradyan <pmuradyan@anl.gov>"
+      source: "CROCUS Measurement Strategy"
+      project: "CROCUS - an Urban Integrated Field Laboratory"
+      reference: ""
+      data_policy: "Open data, adheres to FAIR principles (Findable, Accessible, Interoperable, Reusable)"
+      institution: "Argonne National Laboratory"
+      funding_source: "U.S. DOE Office of Science, Biological and Environmental Research program"
+      acknowledgment: "This material is based upon work supported by the U.S. Department of Energy, Office of Science, Office of Biological and Environmental Research’s Urban Integrated Field Laboratories CROCUS project research activity, under Contract Number DE-AC02-06CH11357 and Award Number DE-SC0023226."
+      data_version: "v1.1.0"
+      file_version: ""
+      doi: ""
+
