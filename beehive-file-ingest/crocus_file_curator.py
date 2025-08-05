@@ -185,7 +185,7 @@ def run_download_jobs(config, root_dir, dry_run: bool, selected_job: Optional[st
         logging.error("Username or password not provided in YAML config.")
         return
 
-    for job in ***REMOVED***
+    for job in jobs:
         settings = parse_job_settings(job)
         if selected_job and settings["job_name"] != selected_job:
             continue
