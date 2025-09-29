@@ -154,10 +154,10 @@ args = parser.parse_args()
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CL61 plots.")
     parser.add_argument(
-        '--input_pattern',
+        '--input_dir',
         type=str,
         required = True,
-        help='Glob pattern for input NetCDF files (e.g., "*.nc").'
+        help='input dir for NetCDF .'
     )
     parser.add_argument(
         '--output_dir',
@@ -170,5 +170,5 @@ if __name__ == "__main__":
     input_pattern = '/Users/bhupendra/projects/crocus/data/cl61/cl61-correct-time-daily-test-delete/*.nc'
     output_dir = '/Users/bhupendra/projects/crocus/plots/cl61/dailiy-test-delete'
     os.makedirs(output_dir, exist_ok=True)
-    files = glob.glob(input_pattern)
+    files = glob.glob(input_pattern+"*.nc")
     process_files(files, output_dir)
