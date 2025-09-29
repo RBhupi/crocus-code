@@ -11,6 +11,7 @@ import glob
 import os
 import act
 
+import argparse
 #%%
 def load_data(file_pattern):
     """
@@ -133,8 +134,39 @@ def process_files(files, output_dir):
 
 # %%
 
+parser = argparse.ArgumentParser(description="Process CL61 Lidar NetCDF files and generate plots.")
+parser.add_argument(
+    '--input_pattern',
+    type=str,
+    default='/Users/bhupendra/projects/crocus/data/cl61/cl61-correct-time-daily-test-delete/*.nc',
+    help='Glob pattern for input NetCDF files (e.g., "*.nc").'
+)
+parser.add_argument(
+    '--output_dir',
+    type=str,
+    default='/Users/bhupendra/projects/crocus/plots/cl61/dailiy-test-delete',
+    help='Directory to save output plots.'
+)
+args = parser.parse_args()
+
+
 # Example usage
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="CL61 plots.")
+    parser.add_argument(
+        '--input_pattern',
+        type=str,
+        required = True,
+        help='Glob pattern for input NetCDF files (e.g., "*.nc").'
+    )
+    parser.add_argument(
+        '--output_dir',
+        type=str,
+        required=True,
+        help='Directory output'
+    )
+    args = parser.parse_args()
+    
     input_pattern = '/Users/bhupendra/projects/crocus/data/cl61/cl61-correct-time-daily-test-delete/*.nc'
     output_dir = '/Users/bhupendra/projects/crocus/plots/cl61/dailiy-test-delete'
     os.makedirs(output_dir, exist_ok=True)
