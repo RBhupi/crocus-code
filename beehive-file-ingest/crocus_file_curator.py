@@ -124,6 +124,8 @@ def parse_job_settings(job):
 
 ### run jobs
 def build_output_base(root_dir, upload_name, vsn, site, subfolder):
+    upload_name = upload_name.lower().replace("-", "_")
+    
     site = site or "UNKNOWN"
     vsn_site_path = f"{vsn}-{site}"
     return os.path.join(root_dir, upload_name, vsn_site_path, subfolder)

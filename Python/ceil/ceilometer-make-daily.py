@@ -75,10 +75,11 @@ if __name__ == "__main__":
     parser.add_argument("--end", help="End day YYYY-MM-DD format.", required=True)
     parser.add_argument("--input", help="Directory.", required=True)
     parser.add_argument("--output", help="Directory.", required=True)
-    parser.add_argument("--prefix", help="Output filename prefix, added before datetime string. (Default: crocus-neiu-ceil-a1-)", default="crocus-neiu-ceil-a1-")
+    parser.add_argument("--prefix", default="crocus-neiu-ceil-a1-", 
+                        help="Output filename prefix, added before datetime string. (Default: crocus-neiu-ceil-a1-)")
 
     args = parser.parse_args()
-
+        
     # make out put  dir
     os.makedirs(args.output, exist_ok=True)
 
